@@ -2,21 +2,31 @@
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CF DNS Manager</title><link rel="icon" href="/favicon.ico">
 <style>
-:root{--bg:#0b132b;--panel:#1c2541;--accent:#5bc0be;--accent2:#3a506b;--text:#f3f7fb;--muted:#9fb3c8;--danger:#e76f51;}
+:root{--bg:#0b132b;--panel:#111a33;--panel2:#1c2541;--accent:#5bc0be;--accent-dark:#3aa9a7;--accent2:#3a506b;--text:#f3f7fb;--muted:#9fb3c8;--danger:#f15048;--danger-dark:#cc3e36}
 html,body,#root{height:100%}*{box-sizing:border-box}body{margin:0;font-family:ui-sans-serif,system-ui;background:var(--bg);color:var(--text)}
-.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.wrap{max-width:1180px;margin:0 auto;padding:18px}
 .header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
 .title{font-weight:800;font-size:22px}
-.btn{background:var(--accent);color:#062c30;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
-.btn.secondary{background:var(--accent2);color:var(--text)}.btn.danger{background:var(--danger);color:#fff}.btn[disabled]{opacity:.6;cursor:wait}
-.card{background:var(--panel);border-radius:14px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border-radius:16px;padding:14px;box-shadow:0 14px 28px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03)}
 .muted{color:var(--muted)}.footer{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
-.grid,.row,.inline-form{display:grid;grid-template-columns:110px 1fr 1fr 90px 100px 140px;gap:10px}
+.btn{appearance:none;border:none;color:#062c30;background:linear-gradient(180deg,var(--accent),var(--accent-dark));padding:10px 16px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 6px 0 #1f6f6e,0 12px 24px rgba(0,0,0,.25);transition:transform .02s ease}
+.btn:active{transform:translateY(2px);box-shadow:0 4px 0 #1f6f6e,0 10px 20px rgba(0,0,0,.25)}
+.btn.secondary{color:var(--text);background:linear-gradient(180deg,var(--accent2),#2a3c57);box-shadow:0 6px 0 #1e2b3e,0 12px 24px rgba(0,0,0,.25)}
+.btn.secondary:active{box-shadow:0 4px 0 #1e2b3e,0 10px 20px rgba(0,0,0,.25)}
+.btn.danger{color:#fff;background:linear-gradient(180deg,var(--danger),var(--danger-dark));box-shadow:0 6px 0 #882a26,0 12px 24px rgba(0,0,0,.25)}
+.btn.danger:active{box-shadow:0 4px 0 #882a26,0 10px 20px rgba(0,0,0,.25)}
+.btn[disabled]{opacity:.6;cursor:wait}
+.grid,.row,.inline-form{display:grid;grid-template-columns:34px 100px 1fr 1fr 90px 100px 170px;gap:10px}
 .th{color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.08em}
 .row{padding:10px 0;border-bottom:1px solid #2b3d66;align-items:center}
-.cell-wrap{word-break:break-word;white-space:normal;overflow-wrap:anywhere}
+.cell-wrap{word-break:break-word;overflow-wrap:anywhere}
 input,select,textarea{background:#0f1b33;border:1px solid #223356;color:var(--text);border-radius:10px;padding:8px;width:100%}
 textarea{min-height:44px;resize:vertical}
-.row-actions{display:flex;gap:8px;justify-content:flex-end}
+.row-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.tooltip{position:relative;display:inline-block}
+.tooltip .tip{visibility:hidden;opacity:0;transition:opacity .12s ease;position:absolute;z-index:3;left:50%;transform:translateX(-50%);bottom:130%;background:#0f1b33;color:var(--text);padding:8px 10px;border-radius:8px;border:1px solid #223356;min-width:200px;max-width:360px;white-space:normal}
+.tooltip:hover .tip{visibility:visible;opacity:1}
+.filterbar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
