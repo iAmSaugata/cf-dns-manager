@@ -59,6 +59,7 @@ function ZonePicker({onPick}){
 }
 
 function AddRecord({zoneId,onCreated}){
+  const LOCK_DNS_ONLY = new Set(['TXT','MX','NS','PTR']);
   const [type,setType]=useState('A')
   const [name,setName]=useState('')
   const [content,setContent]=useState('')
@@ -73,7 +74,8 @@ function AddRecord({zoneId,onCreated}){
     try{
       const body={type,name,content,ttl:Number(ttl)}
       if(comment) body.comment=comment
-      if(['A','AAAA','CNAME'].includes(type)) body.proxied=Boolean(proxied)
+      if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied)
+      if(LOCK_DNS_ONLY.has(type)) body.proxied=false
       const d=await api(`/zone/${zoneId}/dns_records`,{method:'POST',body:JSON.stringify(body)})
       onCreated(d.result)
       setName(''); setContent(''); setComment('')
@@ -83,7 +85,7 @@ function AddRecord({zoneId,onCreated}){
   return (
     <div className="inline-form" style={{gridTemplateColumns:'180px 1fr 1fr 120px 140px 1fr auto'}}>
       <select value={type} onChange={e=>setType(e.target.value)}>
-        {['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
+        {['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
       </select>
       <input placeholder="Name (use @ for root)" value={name} onChange={e=>setName(e.target.value)} />
       <textarea placeholder="Content / Target / Value" value={content} onChange={e=>setContent(e.target.value)} />
@@ -91,9 +93,13 @@ function AddRecord({zoneId,onCreated}){
         <option value={1}>Auto</option>
         {[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}
       </select>
-      <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}>
-        <option value="off">DNS only</option><option value="on">Proxied</option>
-      </select>
+      {!LOCK_DNS_ONLY.has(type) ? (
+        <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}>
+          <option value="off">DNS only</option><option value="on">Proxied</option>
+        </select>
+      ) : (
+        <div className="badge">DNS only</div>
+      )}
       <input placeholder="Comment (optional)" value={comment} onChange={e=>setComment(e.target.value)} />
       <button className="btn" disabled={busy || !type || !content} onClick={add}>{busy?'Adding…':'Add record'}</button>
       {err && <div className="muted" style={{gridColumn:'1 / -1'}}>Error: {err}</div>}
@@ -134,6 +140,7 @@ function DeleteModal({open, onClose, onConfirm, items}){
 }
 
 function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
+  const LOCK_DNS_ONLY = new Set(['TXT','MX','NS','PTR']);
   const [edit,setEdit]=useState(false)
   const [busy,setBusy]=useState(false)
   const [type,setType]=useState(rec.type)
@@ -147,7 +154,8 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     setBusy(true)
     try{
       const body={type,name,content,ttl:Number(ttl),comment}
-      if(['A','AAAA','CNAME'].includes(type)) body.proxied=Boolean(proxied)
+      if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied)
+      if(LOCK_DNS_ONLY.has(type)) body.proxied=false
       const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)})
       onSaved(d.result); setEdit(false)
     }catch(e){ alert('Save failed: '+e.message) } finally { setBusy(false) }
@@ -158,11 +166,15 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     return (
       <div className="row dns" style={{alignItems:'start'}}>
         <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
-        <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
+        <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
         <input value={name} onChange={e=>setName(e.target.value)} />
         <textarea value={content} onChange={e=>setContent(e.target.value)} />
         <select value={ttl} onChange={e=>setTtl(e.target.value)}><option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}</select>
-        <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}><option value="off">DNS only</option><option value="on">Proxied</option></select>
+        { !LOCK_DNS_ONLY.has(type) ? (
+          <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}><option value="off">DNS only</option><option value="on">Proxied</option></select>
+        ) : (
+          <div className="badge">DNS only</div>
+        ) }
         <input placeholder="Comment" value={comment} onChange={e=>setComment(e.target.value)} />
         <div className="row-actions" style={{minWidth:170}}>
           <button className="btn" disabled={busy} onClick={save}>{busy?'Saving…':'Save'}</button>
@@ -258,7 +270,7 @@ function Records({zone,onBack}){
           <div className="toolbar-left">
             <select value={filterType} onChange={e=>setFilterType(e.target.value)}>
               <option value="">All types</option>
-              {['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
+              {['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
             </select>
             <input placeholder="Search type, name, content, or comment…" value={search} onChange={e=>setSearch(e.target.value)} />
             <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
