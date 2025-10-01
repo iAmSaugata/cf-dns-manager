@@ -19,7 +19,22 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan(':date[iso] :remote-addr ":method :url" :status :res[content-length] - :response-time ms'));
 const CF_BASE = "https://api.cloudflare.com/client/v4";
-function parseCookies(h){const o={};if(!h)return o;h.split(';').forEach(k=>{const i=k.indexOf('=');if(i>-1)o[k[:i].trim()]=decodeURIComponent(k[i+1:])});return o}
+
+// Fixed parseCookies
+function parseCookies(h) {
+  const o = {};
+  if (!h) return o;
+  h.split(';').forEach(k => {
+    const i = k.indexOf('=');
+    if (i > -1) {
+      const key = k.substring(0, i).trim();
+      const val = decodeURIComponent(k.substring(i + 1));
+      o[key] = val;
+    }
+  });
+  return o;
+}
+
 function appAuth(req,res,next){
   const hdr = req.headers['x-app-password'];
   const ck = (req.headers.cookie||'').split('app_password=').pop().split(';')[0] || '';
