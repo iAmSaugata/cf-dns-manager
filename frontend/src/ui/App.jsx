@@ -20,7 +20,6 @@ function Login({ onDone }) {
   const [password,setPassword] = useState("")
   const [loading,setLoading] = useState(false)
   const [err,setErr] = useState("")
-
   const submit = async () => {
     setLoading(true); setErr("")
     try {
@@ -30,7 +29,6 @@ function Login({ onDone }) {
       onDone()
     } catch(e) { setErr(e.message) } finally { setLoading(false) }
   }
-
   return (
     <div className="wrap">
       <div className="card" style={{maxWidth: 420, margin:'60px auto'}}>
@@ -54,7 +52,6 @@ function ZonePicker({ onPick, onAuthFail }) {
   const [zones,setZones] = useState([])
   const [loading,setLoading] = useState(true)
   const [error,setError] = useState("")
-
   useEffect(()=>{
     let mounted = true
     ;(async()=>{
@@ -74,11 +71,9 @@ function ZonePicker({ onPick, onAuthFail }) {
     })()
     return ()=>{ mounted=false }
   },[])
-
   if (loading) return <div className="wrap"><p className="muted">Loading zones…</p></div>
   if (error) return <div className="wrap"><div className="card" style={{border:'1px solid #e76f51'}}><b>Error:</b> {error}</div></div>
   if (zones.length === 1) return null
-
   return (
     <div className="wrap">
       <div className="card">
@@ -98,7 +93,6 @@ function Records({ zone, onBack }) {
   const [records,setRecords] = useState([])
   const [loading,setLoading] = useState(true)
   const [error,setError] = useState("")
-
   useEffect(()=>{
     let mounted = true
     ;(async()=>{
@@ -115,7 +109,6 @@ function Records({ zone, onBack }) {
     })()
     return ()=>{ mounted=false }
   }, [zone])
-
   return (
     <div className="wrap">
       <div className="card">
@@ -147,7 +140,6 @@ function Records({ zone, onBack }) {
 export default function App(){
   const [logged,setLogged] = useState(!!localStorage.getItem('app_password'))
   const [zone,setZone] = useState(null)
-
   if (!logged) return <Login onDone={()=>setLogged(true)} />
   if (!zone) return <ZonePicker onPick={z=>setZone(z)} onAuthFail={()=>{ localStorage.removeItem('app_password'); location.reload() }} />
   return <Records zone={zone} onBack={()=>setZone(null)} />
