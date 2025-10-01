@@ -111,7 +111,7 @@ function DeleteModal({open, onClose, onConfirm, items}){
         <div className="details">
           {one ? (
             <div>
-              <div className="row"><div>Type</div><div>{one.type}</div></div>
+              <div className="row dns"><div>Type</div><div>{one.type}</div></div>
               <div className="row"><div>Name</div><div>{one.name}</div></div>
               <div className="row"><div>Content</div><div>{one.content}</div></div>
               <div className="row"><div>TTL</div><div>{one.ttl===1?'Auto':one.ttl}</div></div>
@@ -156,7 +156,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
 
   if(edit){
     return (
-      <div className="row" style={{alignItems:'start'}}>
+      <div className="row dns" style={{alignItems:'start'}}>
         <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
         <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
         <input value={name} onChange={e=>setName(e.target.value)} />
@@ -178,7 +178,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
       <div className="cell-wrap">{rec.type}</div>
       <div className="cell-wrap">
         {rec.comment ? (
-          <span className="tooltip"><span className="info">i</span><span className="tip">{rec.comment}</span></span>
+          <span className="tooltip"><span className="info">ℹ️</span><span className="tip">{rec.comment}</span></span>
         ) : null} {rec.name}
       </div>
       <div className="cell-wrap">{rec.content}</div>

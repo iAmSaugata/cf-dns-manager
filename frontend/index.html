@@ -62,5 +62,14 @@ display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;a
 .zone-header{display:flex;justify-content:space-between;width:100%;margin-bottom:10px;gap:10px;flex-wrap:wrap}
 .zone-open{margin-top:6px}
 
+
+/* enforce single-line toolbar */
+.toolbar-line{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:nowrap}
+.toolbar-left{display:flex;gap:10px;align-items:center;flex-wrap:nowrap}
+/* ensure actions align right nicely */
+.row-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+/* DNS row hover effect */
+.row.dns{transition:transform .08s ease, box-shadow .12s ease}
+.row.dns:hover{transform:scale(1.01);box-shadow:0 6px 18px rgba(0,0,0,.25);border-radius:10px}
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
