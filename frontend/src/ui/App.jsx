@@ -4,7 +4,8 @@ const API = async (path, opts={}) => {
   const password = localStorage.getItem('app_password') || ''
   const res = await fetch(`/api${path}`, {
     ...opts,
-    headers: { 'x-app-password': password, 'Content-Type': 'application/json', ...(opts.headers||{}) }
+    headers: { 'x-app-password': password, 'Content-Type': 'application/json', ...(opts.headers||{}) },
+    credentials: 'same-origin'
   })
   let data = {}
   try { data = await res.json() } catch {}
@@ -24,16 +25,17 @@ function Login({ onDone }) {
     setLoading(true); setErr("")
     try {
       localStorage.setItem("app_password", password)
-      const res = await fetch("/api/health", { headers: { "x-app-password": password } })
+      document.cookie = `app_password=${encodeURIComponent(password)}; Path=/; SameSite=Lax`
+      const res = await fetch("/api/health", { headers: { "x-app-password": password }, credentials:'same-origin' })
       if (!res.ok) throw new Error("Invalid password")
       onDone()
     } catch(e) { setErr(e.message) } finally { setLoading(false) }
   }
   return (
-    <div className="wrap">
-      <div className="card" style={{maxWidth: 420, margin:'60px auto'}}>
+    <div className="center">
+      <div className="card">
         <h2>Login</h2>
-        <p className="muted">Enter the password you configured in <code>APP_PASSWORD</code>.</p>
+        <p className="muted">Enter the password you configured in <b>APP_PASSWORD</b>.</p>
         <input type="password" className="input" placeholder="Password"
           value={password} onChange={e=>setPassword(e.target.value)} />
         <div style={{marginTop:12}}>
@@ -71,19 +73,20 @@ function ZonePicker({ onPick, onAuthFail }) {
     })()
     return ()=>{ mounted=false }
   },[])
-  if (loading) return <div className="wrap"><p className="muted">Loading zones…</p></div>
-  if (error) return <div className="wrap"><div className="card" style={{border:'1px solid #e76f51'}}><b>Error:</b> {error}</div></div>
+  if (loading) return <div className="center"><p className="muted">Loading zones…</p></div>
+  if (error) return <div className="center"><div className="card" style={{border:'1px solid #e76f51'}}><b>Error:</b> {error}</div></div>
   if (zones.length === 1) return null
   return (
-    <div className="wrap">
-      <div className="card">
-        <h2>Select Zone</h2>
+    <div className="center" style={{alignItems:'flex-start'}}>
+      <div className="card" style={{maxWidth:700}}>
+        <div className="title">Select Zone</div>
         {zones.map(z => (
           <div key={z.id} className="tag" style={{display:'flex', justifyContent:'space-between', marginBottom:8}}>
             <div><b>{z.name}</b></div>
             <button className="btn" onClick={()=>onPick(z)}>Open</button>
           </div>
         ))}
+        <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
       </div>
     </div>
   )
@@ -111,14 +114,14 @@ function Records({ zone, onBack }) {
   }, [zone])
   return (
     <div className="wrap">
-      <div className="card">
-        <div className="header">
-          <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
-          <div style={{display:'flex', gap:8}}>
-            <button className="btn secondary" onClick={onBack}>Change zone</button>
-            <button className="btn secondary" onClick={()=>{ localStorage.removeItem('app_password'); location.reload() }}>Sign out</button>
-          </div>
+      <div className="header">
+        <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
+        <div style={{display:'flex', gap:8}}>
+          <button className="btn" onClick={onBack}>Change zone</button>
+          <button className="btn" onClick={()=>{ document.cookie='app_password=; Max-Age=0; Path=/'; localStorage.removeItem('app_password'); location.reload() }}>Sign out</button>
         </div>
+      </div>
+      <div className="card">
         {loading && <p className="muted">Loading…</p>}
         {error && <div className="card" style={{border:'1px solid #e76f51', marginBottom:10}}><b>Error:</b> {error}</div>}
         {!loading && !error && (
@@ -131,8 +134,8 @@ function Records({ zone, onBack }) {
             </table>
           </div>
         )}
+        <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
       </div>
-      <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
   )
 }
@@ -141,6 +144,6 @@ export default function App(){
   const [logged,setLogged] = useState(!!localStorage.getItem('app_password'))
   const [zone,setZone] = useState(null)
   if (!logged) return <Login onDone={()=>setLogged(true)} />
-  if (!zone) return <ZonePicker onPick={z=>setZone(z)} onAuthFail={()=>{ localStorage.removeItem('app_password'); location.reload() }} />
+  if (!zone) return <ZonePicker onPick={z=>setZone(z)} onAuthFail={()=>{ document.cookie='app_password=; Max-Age=0; Path=/'; localStorage.removeItem('app_password'); location.reload() }} />
   return <Records zone={zone} onBack={()=>setZone(null)} />
 }
