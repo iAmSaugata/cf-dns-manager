@@ -118,11 +118,11 @@ function DeleteModal({open, onClose, onConfirm, items}){
           {one ? (
             <div>
               <div className="row dns"><div>Type</div><div>{one.type}</div></div>
-              <div className="row"><div>Name</div><div>{one.name}</div></div>
-              <div className="row"><div>Content</div><div>{one.content}</div></div>
-              <div className="row"><div>TTL</div><div>{one.ttl===1?'Auto':one.ttl}</div></div>
-              <div className="row"><div>Proxy</div><div>{one.proxied?'Proxied':'DNS only'}</div></div>
-              {one.comment ? <div className="row"><div>Comment</div><div>{one.comment}</div></div> : null}
+              <div className="row dns"><div>Name</div><div>{one.name}</div></div>
+              <div className="row dns"><div>Content</div><div>{one.content}</div></div>
+              <div className="row dns"><div>TTL</div><div>{one.ttl===1?'Auto':one.ttl}</div></div>
+              <div className="row dns"><div>Proxy</div><div>{one.proxied?'Proxied':'DNS only'}</div></div>
+              {one.comment ? <div className="row dns"><div>Comment</div><div>{one.comment}</div></div> : null}
             </div>
           ) : (
             <div style={{maxHeight:260,overflow:'auto'}}>
@@ -185,7 +185,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   }
 
   return (
-    <div className="row">
+    <div className="row dns">
       <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
       <div className="cell-wrap">{rec.type}</div>
       <div className="cell-wrap">
