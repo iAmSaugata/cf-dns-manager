@@ -190,7 +190,6 @@ function Records({zone,onBack}){
 
       </div>
 
-      {loading && <p className=\"muted\">Loading…</p>}      </div>
 
       {loading && <p className="muted">Loading…</p>}
       {err && <p className="muted">Error: {err}</p>}
