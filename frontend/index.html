@@ -10,10 +10,10 @@ html,body,#root{height:100%}*{box-sizing:border-box}body{margin:0;font-family:ui
 .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border-radius:16px;padding:14px;box-shadow:0 14px 28px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03)}
 .muted{color:var(--muted)}.footer{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
 .btn{appearance:none;border:none;color:#062c30;background:linear-gradient(180deg,var(--accent),var(--accent-dark));padding:10px 16px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 6px 0 #1f6f6e,0 12px 24px rgba(0,0,0,.25);transition:transform .02s ease}
-.btn:active{transform:translateY(2px);box-shadow:0 4px 0 #1f6f6e,0 10px 20px rgba(0,0,0,.25)}
-.btn.secondary{color:var(--text);background:linear-gradient(180deg,var(--accent2),#2a3c57);box-shadow:0 5px 0 #1e2b3e,0 10px 20px rgba(0,0,0,.25)}
+.btn:active{transform:translateY(2px);box-shadow:0 3px 0 #1f6f6e,0 6px 12px rgba(0,0,0,.22)}
+.btn.secondary{color:var(--text);background:linear-gradient(180deg,var(--accent2),#2a3c57);box-shadow:0 4px 0 #1e2b3e,0 8px 16px rgba(0,0,0,.22)}
 .btn.secondary:active{box-shadow:0 4px 0 #1e2b3e,0 10px 20px rgba(0,0,0,.25)}
-.btn.danger{color:#fff;background:linear-gradient(180deg,var(--danger),var(--danger-dark));box-shadow:0 5px 0 #882a26,0 10px 20px rgba(0,0,0,.25)}
+.btn.danger{color:#fff;background:linear-gradient(180deg,var(--danger),var(--danger-dark));box-shadow:0 4px 0 #882a26,0 8px 16px rgba(0,0,0,.22)}
 .btn.danger:active{box-shadow:0 4px 0 #882a26,0 10px 20px rgba(0,0,0,.25)}
 .btn[disabled]{opacity:.6;cursor:wait}
 .grid,.row,.inline-form{display:grid;grid-template-columns:34px 100px 1fr 1fr 90px 100px 170px;gap:10px}
@@ -70,6 +70,6 @@ display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;a
 .row-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 /* DNS row hover effect */
 .row.dns{transition:transform .08s ease, box-shadow .12s ease}
-.row.dns:hover{transform:scale(1.01);box-shadow:0 6px 18px rgba(0,0,0,.25);border-radius:10px}
+.row.dns:hover{transform:scale(1.01);box-shadow:0 6px 16px rgba(0,0,0,.25);border-radius:10px;position:relative;z-index:2}
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
