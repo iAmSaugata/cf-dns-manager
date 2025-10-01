@@ -202,7 +202,12 @@ function Records({zone,onBack}){
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
 
-    <DeleteModal open={!!deleteTarget} items={deleteTarget||[]} onClose={()=>setDeleteTarget(null)} onConfirm={confirmDelete} />
+        <DeleteModal
+          open={!!deleteTarget}
+          items={deleteTarget || []}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={confirmDelete}
+        />
   </div>
 }
 
