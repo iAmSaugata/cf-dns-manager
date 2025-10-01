@@ -166,17 +166,31 @@ function Records({zone,onBack}){
       <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
       <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change zone</button><Logout/></div>
     </div>
+
     <div className="card">
-      <div className="filterbar">
-        <select value={filterType} onChange={e=>setFilterType(e.target.value)}>
-          <option value="">All types</option>
-          {['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
-        </select>
-        <input placeholder="Search type, name, content, or comment…" value={search} onChange={e=>setSearch(e.target.value)} />
-        <AddRecord zoneId={zone.id} onCreated={addRec} />
-        <div></div>
-        <button className="btn danger" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>{bulkBusy?'Deleting…':'Delete selected'}</button>
+      <div className="toolbar-line">
+        <div className="toolbar-left">
+          <select value={filterType} onChange={e=>setFilterType(e.target.value)}>
+            <option value="">All types</option>
+            {['A','AAAA','CNAME','TXT','MX','NS','SRV','CAA','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
+          </select>
+          <input placeholder="Search type, name, content, or comment…" value={search} onChange={e=>setSearch(e.target.value)} />
+          <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
+        </div>
+        <div className="toolbar-right">
+          <button className="btn danger" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>
+            {bulkBusy?'Deleting…':'Delete selected'}
+          </button>
+        </div>
       </div>
+
+      <div className="toolbar">
+        <AddRecord zoneId={zone.id} onCreated={addRec} />
+      </div>
+
+      </div>
+
+      {loading && <p className=\"muted\">Loading…</p>}      </div>
 
       {loading && <p className="muted">Loading…</p>}
       {err && <p className="muted">Error: {err}</p>}
@@ -196,7 +210,7 @@ function Records({zone,onBack}){
 function Login({onDone}){
   const [p,setP]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('')
   const go=async()=>{ setBusy(true); setErr(''); try{ localStorage.setItem('app_password',p); document.cookie=`app_password=${encodeURIComponent(p)}; Path=/; SameSite=Lax`; const r=await fetch('/api/health',{headers:{'x-app-password':p},credentials:'same-origin'}); if(!r.ok) throw new Error('Invalid password'); onDone() }catch(e){ setErr(e.message) } finally { setBusy(false) } }
-  return <div className="center"><div className="card" style={{width:'100%',maxWidth:520,padding:'22px'}}><div className="title" style={{marginBottom:8}}>Login</div><p className="muted">Enter the password you configured in <b>APP_PASSWORD</b>.</p><input type="password" placeholder="Password" value={p} onChange={e=>setP(e.target.value)} /><div style={{marginTop:12,display:'flex',gap:10,justifyContent:'space-between'}}><button className="btn" disabled={busy||!p} onClick={go}>{busy?'Checking…':'Login'}</button></div>{err && <p className="muted">Error: {err}</p>}<div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div></div></div>
+  return <div className="center"><div className="card" style={{width:'100%',maxWidth:520,padding:'22px'}}><div className="title" style={{marginBottom:8}}>Login</div><p className="muted">Enter the password you configured in <b>APP_PASSWORD</b>.</p><input type="password" placeholder="Password" value={p} onChange={e=>setP(e.target.value)} /><div className="login-actions" style={{marginTop:12}}><button className="btn secondary" onClick={()=>setP('')}>Clear</button><button className="btn secondary" onClick={()=>location.reload()}>Reload</button><button className="btn" disabled={busy||!p} onClick={go}>{busy?'Checking…':'Login'}</button></div>{err && <p className="muted">Error: {err}</p>}<div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div></div></div>
 }
 
 export default function App(){ const [logged,setLogged]=useState(!!localStorage.getItem('app_password')); const [zone,setZone]=useState(null); if(!logged) return <Login onDone={()=>setLogged(true)}/>; if(!zone) return <ZonePicker onPick={z=>setZone(z)}/>; return <Records zone={zone} onBack={()=>setZone(null)} /> }

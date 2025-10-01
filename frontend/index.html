@@ -23,7 +23,8 @@ html,body,#root{height:100%}*{box-sizing:border-box}body{margin:0;font-family:ui
 input,select,textarea{background:#0f1b33;border:1px solid #223356;color:var(--text);border-radius:10px;padding:8px;width:100%}
 textarea{min-height:44px;resize:vertical}
 .row-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
-.filterbar{display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;align-items:center;margin-bottom:8px}
+.filterbar{
+display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;align-items:center;margin-bottom:8px}
 .center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
 .info{display:inline-block;width:18px;height:18px;border-radius:50%;background:#0f1b33;border:1px solid #4e7da6;color:#9cc1ff;font-weight:800;line-height:18px;text-align:center;cursor:default}
 .tooltip{position:relative;display:inline-block}
@@ -36,5 +37,11 @@ textarea{min-height:44px;resize:vertical}
 .details{background:#0f1b33;border:1px solid #223356;border-radius:12px;padding:10px;font-size:14px}
 .details .row{display:grid;grid-template-columns:130px 1fr;gap:8px;border:0;padding:4px 0}
 .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#0f1b33;border:1px solid #223356;color:var(--muted);font-size:12px}
+
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.toolbar-line{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.toolbar-left{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar-right{display:flex;gap:10px;align-items:center}
+.login-actions{display:flex;gap:10px;justify-content:flex-end}
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
