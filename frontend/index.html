@@ -43,5 +43,13 @@ display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;a
 .toolbar-left{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .toolbar-right{display:flex;gap:10px;align-items:center}
 .login-actions{display:flex;gap:10px;justify-content:flex-end}
+
+.zone-card{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px 18px;margin:10px 0;background:#1a2130;border-radius:12px;
+  transition:transform .15s ease, box-shadow .15s ease;width:auto;max-width:100%}
+.zone-card:hover{transform:scale(1.02);box-shadow:0 4px 18px rgba(0,0,0,0.35)}
+.zone-header{display:flex;justify-content:space-between;width:100%;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+.zone-open{margin-top:6px}
+
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
