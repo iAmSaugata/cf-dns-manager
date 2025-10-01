@@ -23,10 +23,17 @@ html,body,#root{height:100%}*{box-sizing:border-box}body{margin:0;font-family:ui
 input,select,textarea{background:#0f1b33;border:1px solid #223356;color:var(--text);border-radius:10px;padding:8px;width:100%}
 textarea{min-height:44px;resize:vertical}
 .row-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
-.tooltip{position:relative;display:inline-block}
-.tooltip .tip{visibility:hidden;opacity:0;transition:opacity .12s ease;position:absolute;z-index:3;left:50%;transform:translateX(-50%);bottom:130%;background:#0f1b33;color:var(--text);padding:8px 10px;border-radius:8px;border:1px solid #223356;min-width:200px;max-width:360px;white-space:normal}
-.tooltip:hover .tip{visibility:visible;opacity:1}
-.filterbar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.filterbar{display:grid;grid-template-columns:180px 1fr 1fr 120px 140px 1fr auto;gap:10px;align-items:center;margin-bottom:8px}
 .center{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+.info{display:inline-block;width:18px;height:18px;border-radius:50%;background:#0f1b33;border:1px solid #4e7da6;color:#9cc1ff;font-weight:800;line-height:18px;text-align:center;cursor:default}
+.tooltip{position:relative;display:inline-block}
+.tooltip .tip{visibility:hidden;opacity:0;transition:opacity .12s ease;position:absolute;z-index:3;left:50%;transform:translateX(-50%);bottom:130%;background:#0f1b33;color:var(--text);padding:8px 10px;border-radius:8px;border:1px solid #223356;min-width:220px;max-width:420px;white-space:normal}
+.tooltip:hover .tip{visibility:visible;opacity:1}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid #223356;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.4);width:min(720px,92vw);padding:18px}
+.modal h3{margin:0 0 8px 0}
+.modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+.details{background:#0f1b33;border:1px solid #223356;border-radius:12px;padding:10px;font-size:14px}
+.details .row{display:grid;grid-template-columns:130px 1fr;gap:8px;border:0;padding:4px 0}
 </style>
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
