@@ -1,25 +1,26 @@
-# Cloudflare DNS Manager — Single Container v2
+# CF DNS Manager (v6-full)
 
-Single Node.js project serving both API and React frontend.
+Single-container app (Node.js + Vite React) to manage Cloudflare DNS:
+- Login with APP_PASSWORD (env), token via CF_API_TOKEN
+- Zone auto-load when only one zone exists
+- Full CRUD for DNS records with comments
+- Filters + search; bulk select and delete (with modal confirmation)
+- Buttons styled like "DNS Alias Creator for Secure DNS"
+- Container logs include Cloudflare request lines and CRUD actions
 
 ## Run
 ```bash
-unzip cf-dns-manager-single-v2.zip
-cd cf-dns-manager-single-v2
-docker compose up --build
+docker compose up --build -d
+# open http://localhost:5000
 ```
-Open http://localhost:5000
 
-## Auth
-- Backend requires `APP_PASSWORD` (set in docker-compose).
-- Frontend login asks only for password.
-- Backend injects `CF_API_TOKEN` (Cloudflare API Token with Zone:Read + DNS:Edit).
+## Env
+- `APP_PASSWORD` – required
+- `CF_API_TOKEN` – Cloudflare token (Zone:Read, DNS:Edit)
+- `PORT` – default 5000
 
-## Zone Handling
-- If only one zone in account → auto loads that zone.
-- If multiple zones → zone picker dropdown.
-- Top banner shows: **DNS Manager for Zone ABC.COM**
-
-## Footer
-All pages include footer:  
-`Powered by Cloudflare DNS API • © iAmSaugata`
+## Screens (sample)
+- Login centered
+- Zone picker
+- Records grid with inline edit and info ⓘ tooltip
+- Delete confirmation modal (single & bulk)
