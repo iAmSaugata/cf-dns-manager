@@ -126,7 +126,7 @@ function Records({zone,onBack}){
   const allSelected = filtered.length>0 && filtered.every(r=>selected[r.id])
   const toggleAll = (on)=>{ const m={...selected}; filtered.forEach(r=>m[r.id]=on); setSelected(m) }
   const openBulkDelete = ()=>{ const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id); if(!ids.length) return; const items = recs.filter(r=>ids.includes(r.id)); setDelItems(items) }
-  const confirmDelete = async ()=>{ const items = delItems||[]; if(!items.length){ setDelItems(null); return } setBulkBusy(true); try{ for(const r of items){ await api(`/zone/${zone.id}/dns_records/${r.id]}`,{method:'DELETE'}); removeRec(r.id) } setSelected({}) }catch(e){ alert('Delete failed: '+e.message) } finally { setBulkBusy(false); setDelItems(null) } }
+  const confirmDelete = async ()=>{ const items = delItems||[]; if(!items.length){ setDelItems(null); return } setBulkBusy(true); try{ for(const r of items){ await api(`/zone/${zone.id}/dns_records/${r.id}`,{method:'DELETE'}); removeRec(r.id) } setSelected({}) }catch(e){ alert('Delete failed: '+e.message) } finally { setBulkBusy(false); setDelItems(null) } }
   return <div className="wrap">
     <div className="header"><div className="title">DNS Manager for Zone <b className="zone-accent">{zone.name.toUpperCase()}</b></div><div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change Zone</button><Logout/></div></div>
     <div className="card">
