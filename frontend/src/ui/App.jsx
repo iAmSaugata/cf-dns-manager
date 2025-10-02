@@ -22,7 +22,10 @@ function ZonePicker({onPick}){
       {err && <div className="muted">Error: {err}</div>}
       {(zones||[]).map(z=>(
         <div className="zone-item" key={z.id}>
-          <div className="zone-name">{z.name}</div>
+          <div style={{display:'flex',alignItems:'baseline'}}>
+            <div className="zone-name">{z.name}</div>
+            <div className="zone-type">{z.type || z.plan?.name || 'Zone'}</div>
+          </div>
           <button className="btn" onClick={()=>onPick(z)}>Open</button>
         </div>
       ))}
@@ -44,7 +47,8 @@ function AddRecord({zoneId,onCreated}){
       <option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}
     </select>
     {PROXYABLE.has(type) ? (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
+        <div className="muted" style={{fontSize:11,marginBottom:4,letterSpacing:'.08em'}}>PROXY</div>
         <div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div>
       </div>
     ) : (
@@ -58,13 +62,11 @@ function AddRecord({zoneId,onCreated}){
 
 function DeleteModal({open,onClose,onConfirm,items}){
   if(!open) return null
-  const one = items.length===1 ? items[0] : null
   return <div className="center-screen" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)'}} onClick={onClose}>
-    <div className="card" style={{width:'min(720px,92vw)'}} onClick={e=>e.stopPropagation()}>
-      <div className="title">{one ? 'Delete DNS record?' : `Delete ${items.length} DNS records?`}</div>
-      <div className="muted" style={{marginTop:6,maxHeight:260,overflow:'auto'}}>
-        {one ? (<div><div><b>Type:</b> {one.type}</div><div><b>Name:</b> {one.name}</div><div><b>Content:</b> {one.content}</div><div><b>TTL:</b> {one.ttl===1?'Auto':one.ttl}</div><div><b>Proxy:</b> {one.proxied?'Proxied':'DNS only'}</div>{one.comment? <div><b>Comment:</b> {one.comment}</div>:null}</div>)
-              : (items.map(x=><div key={x.id} style={{margin:'4px 0',borderTop:'1px solid #223356',paddingTop:4}}>{x.type} • {x.name} → {x.content}</div>))}
+    <div className="card" style={{width:'min(760px,92vw)'}} onClick={e=>e.stopPropagation()}>
+      <div className="title">Delete {items.length===1 ? 'DNS record' : items.length+' DNS records'}?</div>
+      <div className="muted" style={{marginTop:6,maxHeight:300,overflow:'auto'}}>
+        {items.map(x=>(<div key={x.id} style={{padding:'6px 0',borderTop:'1px solid #223356'}}><b>{x.type}</b> • {x.name} → {x.content}</div>))}
       </div>
       <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:10}}>
         <button className="btn secondary" onClick={onClose}>Cancel</button>
@@ -78,9 +80,9 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
   const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)),[comment,setComment]=useState(rec.comment||'')
 
-  // Keep local edit state in sync with latest rec values (fixes toggle->edit mismatch)
+  // Sync edit state with latest record (fix toggle->edit mismatch)
   useEffect(()=>{
-    if(!edit){ // only update when not actively editing
+    if(!edit){
       setType(rec.type); setName(rec.name); setContent(rec.content);
       setTtl(rec.ttl); setProxied(Boolean(rec.proxied)); setComment(rec.comment||'');
     }
@@ -97,7 +99,10 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
       <textarea value={content} onChange={e=>setContent(e.target.value)} />
       <select value={ttl} onChange={e=>setTtl(e.target.value)}><option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}</select>
       { PROXYABLE.has(type) ? (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
+          <div className="muted" style={{fontSize:11,marginBottom:4,letterSpacing:'.08em'}}>PROXY</div>
+          <div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div>
+        </div>
       ) : (<div className="muted" style={{textAlign:'center'}}>DNS only</div>) }
       <input placeholder="Comment" value={comment} onChange={e=>setComment(e.target.value)} />
       <div className="row-actions" style={{minWidth:150}}>
@@ -110,7 +115,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
     <div className="cell-wrap">{rec.type}</div>
     <div className="cell-wrap">
-      {rec.comment ? (<span className="tooltip"><span className="info">ℹ️</span><span className="tip">{rec.comment}</span></span>) : null} {' '}{rec.name}
+      {rec.comment ? (<span className="tooltip"><span className="info">📜</span><span className="tip">{rec.comment}</span></span>) : null} {' '}{rec.name}
     </div>
     <div className="cell-wrap">{rec.content}</div>
     <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
@@ -161,7 +166,7 @@ function Records({zone,onBack}){
   return <div className="wrap">
     <div className="header">
       <div className="title">DNS Manager for Zone <b className="zone-accent">{zone.name.toUpperCase()}</b></div>
-      <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change Zone</button><Logout/></div>
+      <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={()=>{ document.title='CF DNS Manager'; onBack(); }}>Change Zone</button><Logout/></div>
     </div>
     <div className="card">
       <div className="toolbar-line">
@@ -194,18 +199,16 @@ function Records({zone,onBack}){
 function Login({onDone}){
   const [p,setP]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('')
   useEffect(()=>{ document.title = 'CF DNS Manager' },[])
+  const go=async()=>{ setBusy=True; try{ localStorage.setItem('app_password',p); document.cookie=`app_password=${encodeURIComponent(p)}; Path=/; SameSite=Lax`; const r=await fetch('/api/health',{headers:{'x-app-password':p},credentials:'same-origin'}); if(!r.ok) throw new Error('Invalid password'); onDone() }catch(e){ setErr(e.message) } finally { setBusy(false) } }
   return <div className="center-screen">
-    <div className="card" style={{width:'min(520px,92vw)'}}>
+    <div className="card" style={{width:'min(520px,96vw)'}}>
       <div className="title">Login</div>
       <p className="muted">Enter the password you configured in <b>APP_PASSWORD</b>.</p>
       <input type="password" placeholder="Password" value={p} onChange={e=>setP(e.target.value)} />
       <div className="login-actions" style={{marginTop:10,display:'flex',gap:8,justifyContent:'flex-end'}}>
         <button className="btn secondary" onClick={()=>setP('')}>Clear</button>
         <button className="btn secondary" onClick={()=>location.reload()}>Reload</button>
-        <button className="btn" onClick={async()=>{
-          setBusy(true); setErr('');
-          try{ localStorage.setItem('app_password',p); document.cookie=`app_password=${encodeURIComponent(p)}; Path=/; SameSite=Lax`; const r=await fetch('/api/health',{headers:{'x-app-password':p},credentials:'same-origin'}); if(!r.ok) throw new Error('Invalid password'); onDone() }catch(e){ setErr(e.message) } finally { setBusy(false) }
-        }} disabled={busy || !p}>{busy?'Logging…':'Login'}</button>
+        <button className="btn" onClick={go} disabled={busy || !p}>{busy?'Logging…':'Login'}</button>
       </div>
       {err && <p className="muted">Error: {err}</p>}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
