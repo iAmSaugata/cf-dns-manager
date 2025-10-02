@@ -1,56 +1,83 @@
-<!doctype html><html><head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CF DNS Manager</title><link rel="icon" href="/favicon.ico">
-<style>
-:root{--bg:#0b132b;--panel:#111a33;--panel2:#1c2541;--accent:#5bc0be;--accent-dark:#3aa9a7;--accent2:#3a506b;--text:#f3f7fb;--muted:#9fb3c8;--danger:#f15048;--danger-dark:#cc3e36}
-html,body,#root{height:100%}*{box-sizing:border-box}body{margin:0;font-family:ui-sans-serif,system-ui;background:var(--bg);color:var(--text)}
-.wrap{max-width:980px;margin:0 auto;padding:16px}
-.center-screen{min-height:100vh;display:flex;align-items:center;justify-content:center}
-.header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
-.title{font-weight:800;font-size:19px}
-.zone-accent{color:var(--accent)}
-.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border-radius:12px;padding:12px;box-shadow:0 10px 20px rgba(0,0,0,.25)}
-.muted{color:var(--muted)}.footer{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
-
-/* Buttons smaller */
-.btn{appearance:none;border:none;color:#062c30;background:linear-gradient(180deg,var(--accent),var(--accent-dark));padding:4px 10px;height:28px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 5px 0 #1f6f6e,0 10px 18px rgba(0,0,0,.22);transition:transform .06s ease, box-shadow .12s ease}
-.btn:hover{transform:scale(1.05);box-shadow:0 7px 0 rgba(31,111,110,.9),0 14px 22px rgba(0,0,0,.3)}
-.btn:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(31,111,110,.9),0 8px 14px rgba(0,0,0,.28)}
-.btn.secondary{color:var(--text);background:linear-gradient(180deg,var(--accent2),#2a3c57);box-shadow:0 5px 0 #1e2b3e,0 10px 18px rgba(0,0,0,.22)}
-.btn.danger{color:#fff;background:linear-gradient(180deg,var(--danger),var(--danger-dark));box-shadow:0 5px 0 #882a26,0 10px 18px rgba(0,0,0,.22)}
-.btn.lg{padding:6px 14px;height:32px;font-size:13px}
-.login-actions .btn{min-width:96px}
-
-/* Grid layout */
-.grid,.row,.inline-form{display:grid;grid-template-columns:34px 86px 1fr 1fr 80px 130px 160px;gap:8px}
-.th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.08em}
-.row{padding:8px 0;border-bottom:1px solid #2b3d66;align-items:center}
-.cell-wrap{word-break:break-word;overflow-wrap:anywhere}
-.row-actions{display:flex;gap:6px;justify-content:flex-end;align-items:center}
-
-/* Inputs */
-input,select,textarea{background:#0f1b33;border:1px solid #223356;color:var(--text);border-radius:10px;padding:7px;width:100%}
-textarea{min-height:42px;resize:vertical}
-
-/* ℹ️ tooltip only */
-.tooltip{position:relative;display:inline-flex;align-items:center}
-.info{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:6px;border-radius:50%;background:#0f1b33;border:1px solid #4e7da6;font-size:11px;line-height:1}
-.tooltip svg,.tooltip i,.tooltip .legacy-info{display:none!important}
-.tooltip .tip{visibility:hidden;opacity:0;transition:opacity .12s ease;position:absolute;z-index:3;left:50%;transform:translateX(-50%);bottom:130%;background:#0f1b33;color:var(--text);padding:8px 10px;border-radius:8px;border:1px solid #223356;min-width:220px;max-width:420px}
-.tooltip:hover .tip{visibility:visible;opacity:1}
-
-/* Zone selection - small & centered */
-.zone-list{display:flex;flex-direction:column;gap:8px;width:min(520px,96vw);}
-.zone-item{display:flex;align-items:center;justify-content:space-between;background:#1a2130;border:1px solid #223356;border-radius:10px;padding:10px 12px}
-.zone-name{font-weight:700}
-
-/* Proxy toggle (switch) */
-.switch{position:relative;width:42px;height:22px;background:#24334f;border-radius:999px;border:1px solid #223356;cursor:pointer;display:inline-block}
-.switch .dot{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#9fb3c8;transition:left .15s ease}
-.switch.on{background:#2b8a86}
-.switch.on .dot{left:22px}
-
-/* Desktop-only: remove mobile alt layout; scale page on phones by widening container */
-@media(max-width:480px){ .wrap{max-width:1140px; zoom:0.86} }
-</style>
-</head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CF DNS Manager</title>
+    <style>
+      :root{
+        --bg:#0b1320; --card:#121a2b; --muted:#9fb0d0; --text:#eaf0ff; --accent:#60a5fa;
+        --danger:#ef4444; --ok:#22c55e; --warn:#f59e0b; --shadow:rgba(0,0,0,.35);
+      }
+      *{ box-sizing: border-box; }
+      html, body, #root { height:100%; }
+      body{
+        margin:0; background:linear-gradient(120deg,#0b1320,#0d1730 60%,#0b1320);
+        color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        min-width:1140px; /* enforce desktop */
+      }
+      a{ color:var(--accent); text-decoration:none }
+      .center {
+        display:flex; align-items:center; justify-content:center; height:100%;
+        padding:24px;
+      }
+      .card{
+        background:var(--card); border-radius:18px; padding:24px; box-shadow:0 10px 30px var(--shadow);
+        border:1px solid #1f2b46;
+      }
+      .card--small{ max-width:440px; width:100%; }
+      h1,h2,h3{ margin:0 0 12px 0 }
+      .muted{ color:var(--muted); font-size:14px }
+      .input, select{
+        width:100%; background:#0e1628; border:1px solid #1f2b46; color:var(--text);
+        padding:10px 12px; border-radius:12px; outline:none;
+      }
+      .row{ display:flex; gap:12px; align-items:center; }
+      .toolbar{ display:flex; gap:10px; align-items:center; justify-content:space-between; padding:8px 0; }
+      .toolbar-left{ display:flex; gap:8px; align-items:center; }
+      .toolbar-right{ display:flex; gap:8px; align-items:center; }
+      .btn{
+        padding:8px 12px; border-radius:12px; border:1px solid #233152; background:#14203a; color:var(--text);
+        cursor:pointer; box-shadow: inset 0 1px 0 #2a3a62, 0 2px 0 #0a0f1f, 0 6px 16px var(--shadow);
+        transition: transform .05s ease-in-out, box-shadow .2s ease;
+        font-weight:600; font-size:14px;
+      }
+      .btn:hover{ transform: translateY(-1px); }
+      .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+      .btn.primary{ background:#1b2b4e; border-color:#2a3e6d; }
+      .btn.danger{ background:#2d1515; border-color:#4c1f1f; }
+      .btn.ghost{ background:transparent; border-color:#223356; }
+      .titlebar{ display:flex; justify-content:space-between; align-items:center; margin:8px 0 14px 0; }
+      .title{ font-size:20px; font-weight:800; letter-spacing:.6px }
+      .zone-grid{
+        display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; width:680px;
+      }
+      .zone-item{
+        background:#0e1628; border:1px solid #1f2b46; padding:14px; border-radius:14px; cursor:pointer;
+        display:flex; justify-content:space-between; align-items:center; transition: box-shadow .2s ease, transform .05s ease;
+      }
+      .zone-item:hover{ box-shadow:0 14px 32px var(--shadow); transform: translateY(-1px); }
+      .pill{ background:#223356; padding:2px 10px; border-radius:999px; font-size:12px; color:#cfe1ff }
+      .table{ width:100%; border-spacing:0; border-collapse: collapse; }
+      .table th, .table td{ padding:10px 8px; border-bottom:1px solid #1f2b46; font-size:14px; text-align:left; }
+      .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0e1628; padding:2px 6px; border-radius:6px; border:1px solid #203255; }
+      .switch{ position:relative; width:42px; height:24px; background:#17233f; border-radius:999px; border:1px solid #223356; }
+      .switch input{ display:none; }
+      .knob{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#758bb8; transition:left .15s ease; }
+      .switch.on .knob{ left:22px; background:#58d282; }
+      .field{ margin:10px 0; }
+      .field-label{ display:block; margin-bottom:6px; color:#cfe1ff; font-size:12px; letter-spacing:.3px; }
+      .tag{ font-size:12px; padding:2px 6px; border-radius:999px; border:1px solid #2d3f69; background:#0e1628; color:#cfe1ff }
+      .modal-back{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; }
+      .modal{ width:680px; max-height:80vh; overflow:auto; background:var(--card); border:1px solid #1f2b46; border-radius:16px; padding:16px; box-shadow:0 14px 30px var(--shadow); }
+      .list{ background:#0c1426; border:1px solid #1f2b46; border-radius:10px; padding:8px; max-height:260px; overflow:auto; }
+      .hint{ color:#b9c7e6; font-size:13px }
+      .icon{ margin-right:6px }
+      .row-gap{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.jsx"></script>
+  </body>
+</html>

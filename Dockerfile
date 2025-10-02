@@ -1,13 +1,20 @@
+# --- build stage ---
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json ./
+COPY package.json package-lock.json* ./
 RUN npm install
-COPY . .
-WORKDIR /app/frontend
-RUN npm install && npm run build
+COPY frontend ./frontend
+COPY vite.config.js ./vite.config.js
+RUN npm run build
 
+# --- run stage ---
 FROM node:20-alpine
 WORKDIR /app
-COPY --from=builder /app /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev
+COPY server.js ./server.js
+COPY .env.example ./.env.example
+COPY --from=builder /app/dist ./dist
 EXPOSE 5000
 CMD ["node","server.js"]

@@ -1,9 +1,12 @@
+version: "3.9"
 services:
   cf-dns-manager:
     build: .
+    container_name: cf-dns-manager
     ports:
       - "5000:5000"
     environment:
-      APP_PASSWORD: "Pass"
-      CF_API_TOKEN: "CFT"
-    restart: always
+      - APP_PASSWORD=${APP_PASSWORD}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - PORT=5000
+    restart: unless-stopped
