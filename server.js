@@ -6,46 +6,35 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 const CF_BASE = "https://api.cloudflare.com/client/v4";
-
-console.log("=== CF DNS Manager v15 starting ===");
-console.log("APP_PASSWORD set:", Boolean(process.env.APP_PASSWORD));
-console.log("CF_API_TOKEN set:", Boolean(process.env.CF_API_TOKEN));
-
+console.log("=== CF DNS Manager starting ===");
 app.set("trust proxy", true);
 app.disable("etag");
 app.use((req,res,next)=>{ res.set("Cache-Control","no-store"); next(); });
 app.use(express.json());
 app.use(cors());
 app.use(morgan(':date[iso] :remote-addr ":method :url" :status :res[content-length] - :response-time ms'));
-
 function parseCookies(h){const o={}; if(!h) return o; h.split(';').forEach(k=>{const i=k.indexOf('='); if(i>-1){o[k.substring(0,i).trim()]=decodeURIComponent(k.substring(i+1))}}); return o}
 function appAuth(req,res,next){
   const hdr=req.headers["x-app-password"];
   const ck=parseCookies(req.headers.cookie||"")["app_password"];
   const provided=hdr||ck||"";
   const expected=process.env.APP_PASSWORD||"";
-  if(!provided || provided!==expected){ console.log("[AUTH] Denied"); return res.status(401).json({success:false,error:"Unauthorized"}); }
+  if(!provided || provided!==expected){ return res.status(401).json({success:false,error:"Unauthorized"}); }
   next();
 }
 async function cfFetch(p,options={}){
   const url = CF_BASE + p;
-  console.log("[CF]", options.method||"GET", url);
-  const res = await fetch(url, {
-    ...options,
-    headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${process.env.CF_API_TOKEN}`, ...(options.headers||{}) }
-  });
+  const res = await fetch(url, {...options, headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${process.env.CF_API_TOKEN}`, ...(options.headers||{}) }});
   let data={}; try{ data=await res.json(); }catch{}
-  if(!res.ok || data?.success===false){ const msg=data?.errors?.[0]?.message||`Cloudflare error (${res.status})`; console.error("[CF][ERROR]", msg); const err=new Error(msg); err.status=res.status; err.cf=data; throw err; }
+  if(!res.ok || data?.success===false){ const msg=data?.errors?.[0]?.message||`Cloudflare error (${res.status})`; const err=new Error(msg); err.status=res.status; err.cf=data; throw err; }
   return data;
 }
-
 app.use("/api", appAuth);
 app.get("/api/health",(req,res)=>res.json({ok:true}));
 app.get("/api/zones", async (req,res,next)=>{ try{ res.json(await cfFetch("/zones?per_page=200&page=1")); } catch(e){ next(e); } });
@@ -59,18 +48,9 @@ app.get("/api/zone/:z/dns_records", async (req,res,next)=>{
 app.post("/api/zone/:z/dns_records", async (req,res,next)=>{ try{ const {z}=req.params; res.json(await cfFetch(`/zones/${z}/dns_records`,{method:"POST",body:JSON.stringify(req.body)})); }catch(e){ next(e);} });
 app.put("/api/zone/:z/dns_records/:id", async (req,res,next)=>{ try{ const {z,id}=req.params; res.json(await cfFetch(`/zones/${z}/dns_records/${id}`,{method:"PUT",body:JSON.stringify(req.body)})); }catch(e){ next(e);} });
 app.delete("/api/zone/:z/dns_records/:id", async (req,res,next)=>{ try{ const {z,id}=req.params; res.json(await cfFetch(`/zones/${z}/dns_records/${id}`,{method:"DELETE"})); }catch(e){ next(e);} });
-
-// serve frontend
 const distPath = path.join(__dirname,'frontend','dist');
-if (!fs.existsSync(distPath)) console.warn('[WARN] Frontend dist not found yet. Vite will build in Docker image.');
+if (!fs.existsSync(distPath)) console.warn('[WARN] Frontend dist not found.');
 app.use(express.static(distPath));
 app.get('*',(_,res)=>res.sendFile(path.join(distPath,'index.html')));
-
-// errors
-app.use((err,req,res,next)=>{
-  const code = err.status || 500;
-  console.error("[SERVER][ERROR]", code, err.message);
-  res.status(code).json({success:false,error:err.message,details:err.cf||undefined});
-});
-
+app.use((err,req,res,next)=>{ const code = err.status || 500; res.status(code).json({success:false,error:err.message,details:err.cf||undefined}); });
 app.listen(PORT,'0.0.0.0',()=>console.log(`HTTP server listening on 0.0.0.0:${PORT}`));
