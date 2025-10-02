@@ -1,15 +1,15 @@
-# CF DNS Manager (v15 full)
+# CF DNS Manager (v15.1 full)
 
-- Zone selection like v14-full2 (simple list with inline Open)
-- Buttons smaller than before
-- Proxy toggle switch for A/AAAA/CNAME (disabled for TXT/MX/NS/PTR)
-- Selected zone highlighted in header
-- Mobile responsive (stacked controls + mobile list view)
-- Legacy ⓘ removed; only ℹ️ used for comments
+- Login centered. No version in tab title.
+- Zone selection small & centered.
+- Delete Selected disabled until selection.
+- Desktop-only view (no separate mobile view); slightly scaled on small screens.
+- Proxy toggle fix: edit form now syncs with latest record state.
+- On zone select, browser tab title becomes the ZONE NAME (all caps).
 
 ## Run
 ```bash
 docker compose up --build -d
 # http://localhost:5000
 ```
-Set env: `APP_PASSWORD`, `CF_API_TOKEN` (Zone:Read, DNS:Edit).
+Env: `APP_PASSWORD`, `CF_API_TOKEN` (Zone:Read, DNS:Edit).

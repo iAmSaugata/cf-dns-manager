@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const CF_BASE = "https://api.cloudflare.com/client/v4";
 
-console.log("=== CF DNS Manager v15 starting ===");
+console.log("=== CF DNS Manager starting ===");
 console.log("APP_PASSWORD set:", Boolean(process.env.APP_PASSWORD));
 console.log("CF_API_TOKEN set:", Boolean(process.env.CF_API_TOKEN));
 
@@ -62,7 +62,7 @@ app.delete("/api/zone/:z/dns_records/:id", async (req,res,next)=>{ try{ const {z
 
 // serve frontend
 const distPath = path.join(__dirname,'frontend','dist');
-if (!fs.existsSync(distPath)) console.warn('[WARN] Frontend dist not found yet. Vite will build in Docker image.');
+if (!fs.existsSync(distPath)) console.warn('[WARN] Frontend dist not found yet.');
 app.use(express.static(distPath));
 app.get('*',(_,res)=>res.sendFile(path.join(distPath,'index.html')));
 

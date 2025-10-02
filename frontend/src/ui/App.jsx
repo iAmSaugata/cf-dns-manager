@@ -8,6 +8,7 @@ const api = async (p,o={})=>{
   if(!r.ok || d.success===false){ const e=new Error(d?.error||`Request failed (${r.status})`); e.status=r.status; e.payload=d; throw e }
   return d
 }
+
 const Logout=()=> <button className="btn secondary" onClick={()=>{document.cookie='app_password=; Max-Age=0; Path=/';localStorage.removeItem('app_password');location.reload()}}>Sign Out</button>
 const PROXYABLE = new Set(['A','AAAA','CNAME'])
 const LOCK_ONLY = new Set(['TXT','MX','NS','PTR'])
@@ -15,18 +16,16 @@ const LOCK_ONLY = new Set(['TXT','MX','NS','PTR'])
 function ZonePicker({onPick}){
   const [zones,setZones]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
   useEffect(()=>{(async()=>{try{const d=await api(`/zones?t=${Date.now()}`);const zs=d.result||[];setZones(zs);if(zs.length===1)onPick(zs[0])}catch(e){setErr(e.message)}finally{setLoading(false)}})()},[])
-  if(loading) return <div className="wrap"><div className="card"><p className="muted">Loading zones…</p></div></div>
-  return <div className="wrap" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <div className="card" style={{maxWidth:520,width:"100%"}}>
+  if(loading) return <div className="center-screen"><div className="card"><p className="muted">Loading zones…</p></div></div>
+  return <div className="center-screen">
+    <div className="zone-list">
       {err && <div className="muted">Error: {err}</div>}
-      <div className="zone-list">
-        {(zones||[]).map(z=>(
-          <div className="zone-item" key={z.id}>
-            <div className="zone-name">{z.name}</div>
-            <button className="btn" onClick={()=>onPick(z)}>Open</button>
-          </div>
-        ))}
-      </div>
+      {(zones||[]).map(z=>(
+        <div className="zone-item" key={z.id}>
+          <div className="zone-name">{z.name}</div>
+          <button className="btn" onClick={()=>onPick(z)}>Open</button>
+        </div>
+      ))}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
   </div>
@@ -60,7 +59,7 @@ function AddRecord({zoneId,onCreated}){
 function DeleteModal({open,onClose,onConfirm,items}){
   if(!open) return null
   const one = items.length===1 ? items[0] : null
-  return <div className="modal-mask" onClick={onClose}>
+  return <div className="center-screen" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)'}} onClick={onClose}>
     <div className="card" style={{width:'min(720px,92vw)'}} onClick={e=>e.stopPropagation()}>
       <div className="title">{one ? 'Delete DNS record?' : `Delete ${items.length} DNS records?`}</div>
       <div className="muted" style={{marginTop:6,maxHeight:260,overflow:'auto'}}>
@@ -76,49 +75,18 @@ function DeleteModal({open,onClose,onConfirm,items}){
 }
 
 function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
-  const [edit,setEdit] = useState(false);
-  const [busy,setBusy] = useState(false);
+  const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
+  const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)),[comment,setComment]=useState(rec.comment||'')
 
-  // Editable fields
-  const [type,setType] = useState(rec.type);
-  const [name,setName] = useState(rec.name);
-  const [content,setContent] = useState(rec.content);
-  const [ttl,setTtl] = useState(rec.ttl);
-  const [proxied,setProxied] = useState(Boolean(rec.proxied));
-  const [comment,setComment] = useState(rec.comment || '');
+  // Keep local edit state in sync with latest rec values (fixes toggle->edit mismatch)
+  useEffect(()=>{
+    if(!edit){ // only update when not actively editing
+      setType(rec.type); setName(rec.name); setContent(rec.content);
+      setTtl(rec.ttl); setProxied(Boolean(rec.proxied)); setComment(rec.comment||'');
+    }
+  }, [rec.id, rec.type, rec.name, rec.content, rec.ttl, rec.proxied, rec.comment, edit]);
 
-  // Keep form state in sync with latest record props (fixes stale toggle state on edit)
-  useEffect(() => {
-    setType(rec.type);
-    setName(rec.name);
-    setContent(rec.content);
-    setTtl(rec.ttl);
-    setProxied(Boolean(rec.proxied));
-    setComment(rec.comment || '');
-  }, [rec.id, rec.type, rec.name, rec.content, rec.ttl, rec.proxied, rec.comment]);
-
-  const askDelete = () => setDeleteTarget([rec]);
-
-  if(edit){
-    return <div className="row dns" style={{alignItems:'start'}}>
-      <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
-      <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
-      <input value={name} onChange={e=>setName(e.target.value)} />
-      <textarea value={content} onChange={e=>setContent(e.target.value)} />
-      <select value={ttl} onChange={e=>setTtl(e.target.value)}>{[1,60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v===1?'Auto':v}</option>)}</select>
-      { PROXYABLE.has(type) ? (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div>
-        </div>
-      ) : (<div className="muted" style={{textAlign:'center'}}>DNS only</div>) }
-      <input placeholder="Comment" value={comment} onChange={e=>setComment(e.target.value)} />
-      <div className="actions" style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-        <button className="btn secondary" onClick={()=>setEdit(false)}>Cancel</button>
-        <button className="btn" disabled={busy || !type || !content} onClick={save}>{busy?'Saving…':'Save'}</button>
-      </div>
-    </div>
-  }
-const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(PROXYABLE.has(type)) body.proxied=Boolean(proxied); if(LOCK_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
+  const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(PROXYABLE.has(type)) body.proxied=Boolean(proxied); if(LOCK_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
   const askDelete=()=> setDeleteTarget([rec])
 
   if(edit){
@@ -166,11 +134,10 @@ function Records({zone,onBack}){
   const [selected,setSelected]=useState({})
   const [delItems,setDelItems]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
 
+  useEffect(()=>{ document.title = zone.name.toUpperCase() },[zone.name])
+
   const load=async()=>{ setLoading(true); setErr(''); try{ const d=await api(`/zone/${zone.id}/dns_records?per_page=200&t=${Date.now()}`); setRecs(d.result||[]) }catch(e){ setErr(e.message) } finally{ setLoading(false) } }
   useEffect(()=>{ load() },[zone.id])
-  // set title to zone name in caps
-  useEffect(()=>{ try{ document.title = (zone?.name||"").toUpperCase() }catch(e){} }, [zone?.name])
-
 
   const updateRec = r => setRecs(p=>p.map(x=>x.id===r.id? r : x))
   const removeRec = id => setRecs(p=>p.filter(x=>x.id!==id))
@@ -206,32 +173,17 @@ function Records({zone,onBack}){
           <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
         </div>
         <div className="toolbar-right">
-          <button className="btn danger lg" disabled={!Object.values(selected).some(Boolean) || bulkBusy} onClick={openBulkDelete}>
+          <button className="btn danger lg" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>
             {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
       </div>
       <div className="toolbar"><AddRecord zoneId={zone.id} onCreated={addRec} /></div>
 
-      {/* Desktop grid */}
       <div className="grid th"><div><input type="checkbox" checked={allSelected} onChange={e=>toggleAll(e.target.checked)} /></div><div>Type</div><div>Name</div><div>Content</div><div>TTL</div><div>Proxy</div><div>Actions</div></div>
       {!loading && !err && filtered.map(r=> <Row key={r.id} rec={r} zoneId={zone.id} onSaved={updateRec} onToggleSelect={onToggleSelect} selected={!!selected[r.id]} setDeleteTarget={setDelItems} />)}
       {loading && <p className="muted">Loading…</p>}
       {err && <p className="muted">Error: {err}</p>}
-
-      {/* Mobile list */}
-      <div className="list-mobile">
-        {filtered.map(r=>(
-          <div className="mobile-row" key={r.id}>
-            <div className="mobile-kv"><div><b>Type</b></div><div>{r.type}</div></div>
-            <div className="mobile-kv"><div><b>Name</b></div><div>{r.name}</div></div>
-            <div className="mobile-kv"><div><b>Content</b></div><div>{r.content}</div></div>
-            <div className="mobile-kv"><div><b>TTL</b></div><div>{r.ttl===1?'Auto':r.ttl}</div></div>
-            <div className="mobile-kv"><div><b>Proxy</b></div><div>{PROXYABLE.has(r.type)?(r.proxied?'Proxied':'DNS only'):'DNS only'}</div></div>
-            <div className="mobile-actions"><button className="btn" onClick={()=>alert('Use desktop view to edit for now')}>Edit</button><button className="btn danger" onClick={()=>setDelItems([r])}>Delete</button></div>
-          </div>
-        ))}
-      </div>
 
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
@@ -241,15 +193,19 @@ function Records({zone,onBack}){
 
 function Login({onDone}){
   const [p,setP]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('')
-  const go=async()=>{ setBusy(true); setErr(''); try{ localStorage.setItem('app_password',p); document.cookie=`app_password=${encodeURIComponent(p)}; Path=/; SameSite=Lax`; const r=await fetch('/api/health',{headers:{'x-app-password':p},credentials:'same-origin'}); if(!r.ok) throw new Error('Invalid password'); onDone() }catch(e){ setErr(e.message) } finally { setBusy(false) } }
-  return <div className="wrap" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-    <div className="card" style={{maxWidth:520,margin:'0 auto'}}>
+  useEffect(()=>{ document.title = 'CF DNS Manager' },[])
+  return <div className="center-screen">
+    <div className="card" style={{width:'min(520px,92vw)'}}>
+      <div className="title">Login</div>
       <p className="muted">Enter the password you configured in <b>APP_PASSWORD</b>.</p>
       <input type="password" placeholder="Password" value={p} onChange={e=>setP(e.target.value)} />
       <div className="login-actions" style={{marginTop:10,display:'flex',gap:8,justifyContent:'flex-end'}}>
         <button className="btn secondary" onClick={()=>setP('')}>Clear</button>
         <button className="btn secondary" onClick={()=>location.reload()}>Reload</button>
-        <button className="btn" onClick={go} disabled={busy || !p}>{busy?'Logging…':'Login'}</button>
+        <button className="btn" onClick={async()=>{
+          setBusy(true); setErr('');
+          try{ localStorage.setItem('app_password',p); document.cookie=`app_password=${encodeURIComponent(p)}; Path=/; SameSite=Lax`; const r=await fetch('/api/health',{headers:{'x-app-password':p},credentials:'same-origin'}); if(!r.ok) throw new Error('Invalid password'); onDone() }catch(e){ setErr(e.message) } finally { setBusy(false) }
+        }} disabled={busy || !p}>{busy?'Logging…':'Login'}</button>
       </div>
       {err && <p className="muted">Error: {err}</p>}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
