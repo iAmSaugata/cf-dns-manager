@@ -14,14 +14,14 @@ function ZonePicker({onPick}){
   const [zones,setZones]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
   useEffect(()=>{(async()=>{try{const d=await api(`/zones?t=${Date.now()}`);const zs=d.result||[];setZones(zs);if(zs.length===1)onPick(zs[0])}catch(e){setErr(e.message)}finally{setLoading(false)}})()},[])
   if(loading) return <div className="center-full"><div className="card"><p className="muted">Loading zones…</p></div></div>
-  return <div className="wrap">
+  return <div className="wrap center-page">
     <div className="header"><div className="title">Select Zone</div><Logout/></div>
     <div className="card">
       {err && <div className="muted">Error: {err}</div>}
       <div className="zone-list">
         {(zones||[]).map(z=>(
           <div className="zone-item" key={z.id}>
-            <div className="zone-top"><div className="zone-name" style={{fontWeight:700}}>{z.name}</div><div className="muted">{z.plan?.name||'Free Website'}</div></div>
+            <div className="zone-top"><div className="zone-name" style={{fontWeight:700}}>{z.name}</div><div className="badge">{z.plan?.name||"Free Website"}</div></div>
             <div className="zone-actions"><button className="btn" onClick={()=>onPick(z)}>Open</button></div>
           </div>
         ))}
@@ -44,11 +44,11 @@ function AddRecord({zoneId,onCreated}){
       <option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}
     </select>
     {PROXYABLE.has(type) ? (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}><div className="muted" style={{fontSize:11,marginBottom:4}}>PROXY</div>
         <div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div>
       </div>
     ) : (
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className="muted">DNS only</div></div>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}><div className='muted' style={{fontSize:11,marginBottom:4}}>PROXY</div><div className='muted'>DNS only</div></div>
     )}
     <input placeholder="Comment (optional)" value={comment} onChange={e=>setComment(e.target.value)} />
     <button className="btn lg" disabled={busy || !type || !content} onClick={add}>{busy?'Adding…':'Add Record'}</button>
@@ -90,8 +90,8 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
       <textarea value={content} onChange={e=>setContent(e.target.value)} />
       <select value={ttl} onChange={e=>setTtl(e.target.value)}><option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}</select>
       { PROXYABLE.has(type) ? (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div></div>
-      ) : (<div className="muted" style={{textAlign:'center'}}>DNS only</div>) }
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}><div className='muted' style={{fontSize:11,marginBottom:4}}>PROXY</div><div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className='dot'/></div></div>
+      ) : (<div style={{display:'flex',flexDirection:'column',alignItems:'center'}}><div className='muted' style={{fontSize:11,marginBottom:4}}>PROXY</div><div className='muted'>DNS only</div></div>) }
       <input placeholder="Comment" value={comment} onChange={e=>setComment(e.target.value)} />
       <div className="row-actions" style={{minWidth:150}}>
         <button className="btn" disabled={busy} onClick={save}>{busy?'Saving…':'Save'}</button>
@@ -127,7 +127,7 @@ function Records({zone,onBack}){
   const toggleAll = (on)=>{ const m={...selected}; filtered.forEach(r=>m[r.id]=on); setSelected(m) }
   const openBulkDelete = ()=>{ const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id); if(!ids.length) return; const items = recs.filter(r=>ids.includes(r.id)); setDelItems(items) }
   const confirmDelete = async ()=>{ const items = delItems||[]; if(!items.length){ setDelItems(null); return } setBulkBusy(true); try{ for(const r of items){ await api(`/zone/${zone.id}/dns_records/${r.id}`,{method:'DELETE'}); removeRec(r.id) } setSelected({}) }catch(e){ alert('Delete failed: '+e.message) } finally { setBulkBusy(false); setDelItems(null) } }
-  return <div className="wrap">
+  return <div className="wrap center-page">
     <div className="header"><div className="title">DNS Manager for Zone <b className="zone-accent">{zone.name.toUpperCase()}</b></div><div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change Zone</button><Logout/></div></div>
     <div className="card">
       <div className="toolbar-line"><div className="toolbar-left"><select value={filterType} onChange={e=>setFilterType(e.target.value)}><option value="">All types</option>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select><input placeholder="Search type, name, content, or comment…" value={search} onChange={e=>setSearch(e.target.value)} /><button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button></div><div className="toolbar-right"><button className="btn danger lg" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>{bulkBusy?'Deleting…':'Delete Selected'}</button></div></div>
