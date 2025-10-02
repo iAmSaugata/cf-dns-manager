@@ -76,12 +76,49 @@ function DeleteModal({open,onClose,onConfirm,items}){
 }
 
 function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
-  const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
-  const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)
-  // keep form state in sync with latest record props
-  useEffect(()=>{ setType(rec.type); setName(rec.name); setContent(rec.content); setTtl(rec.ttl); setProxied(Boolean(rec.proxied)); setComment(rec.comment||"") }, [rec.id, rec.type, rec.name, rec.content, rec.ttl, rec.proxied, rec.comment])
-),[comment,setComment]=useState(rec.comment||'')
-  const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(PROXYABLE.has(type)) body.proxied=Boolean(proxied); if(LOCK_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
+  const [edit,setEdit] = useState(false);
+  const [busy,setBusy] = useState(false);
+
+  // Editable fields
+  const [type,setType] = useState(rec.type);
+  const [name,setName] = useState(rec.name);
+  const [content,setContent] = useState(rec.content);
+  const [ttl,setTtl] = useState(rec.ttl);
+  const [proxied,setProxied] = useState(Boolean(rec.proxied));
+  const [comment,setComment] = useState(rec.comment || '');
+
+  // Keep form state in sync with latest record props (fixes stale toggle state on edit)
+  useEffect(() => {
+    setType(rec.type);
+    setName(rec.name);
+    setContent(rec.content);
+    setTtl(rec.ttl);
+    setProxied(Boolean(rec.proxied));
+    setComment(rec.comment || '');
+  }, [rec.id, rec.type, rec.name, rec.content, rec.ttl, rec.proxied, rec.comment]);
+
+  const askDelete = () => setDeleteTarget([rec]);
+
+  if(edit){
+    return <div className="row dns" style={{alignItems:'start'}}>
+      <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
+      <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
+      <input value={name} onChange={e=>setName(e.target.value)} />
+      <textarea value={content} onChange={e=>setContent(e.target.value)} />
+      <select value={ttl} onChange={e=>setTtl(e.target.value)}>{[1,60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v===1?'Auto':v}</option>)}</select>
+      { PROXYABLE.has(type) ? (
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div className={`switch ${proxied?'on':''}`} onClick={()=>setProxied(!proxied)}><div className="dot"/></div>
+        </div>
+      ) : (<div className="muted" style={{textAlign:'center'}}>DNS only</div>) }
+      <input placeholder="Comment" value={comment} onChange={e=>setComment(e.target.value)} />
+      <div className="actions" style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+        <button className="btn secondary" onClick={()=>setEdit(false)}>Cancel</button>
+        <button className="btn" disabled={busy || !type || !content} onClick={save}>{busy?'Saving…':'Save'}</button>
+      </div>
+    </div>
+  }
+const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(PROXYABLE.has(type)) body.proxied=Boolean(proxied); if(LOCK_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
   const askDelete=()=> setDeleteTarget([rec])
 
   if(edit){
