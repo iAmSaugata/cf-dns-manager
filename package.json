@@ -1,6 +1,6 @@
 {
   "name": "cf-dns-manager",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "type": "module",
   "scripts": {
     "start": "node server.js"
@@ -11,9 +11,5 @@
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
     "dotenv": "^16.4.5"
-  },
-  "devDependencies": {
-    "vite": "^5.4.8",
-    "@vitejs/plugin-react": "^4.3.1"
   }
 }

@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -5,6 +6,8 @@ import fetch from "node-fetch";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
+
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +19,8 @@ console.log("NODE_ENV:", process.env.NODE_ENV || 'development');
 console.log("PORT:", PORT);
 console.log("APP_PASSWORD set:", Boolean(process.env.APP_PASSWORD));
 console.log("CF_API_TOKEN set:", Boolean(process.env.CF_API_TOKEN));
+if (!process.env.APP_PASSWORD) console.warn("[WARN] APP_PASSWORD is not set. API will reject all requests.");
+if (!process.env.CF_API_TOKEN) console.warn("[WARN] CF_API_TOKEN is not set. Cloudflare calls will fail.");
 
 app.set('trust proxy', true);
 app.disable('etag');
@@ -115,14 +120,12 @@ app.delete('/api/zone/:zoneId/dns_records/:id', async (req,res,next)=>{
   }catch(e){ next(e); }
 });
 
-// serve frontend
-import fs from 'fs';
+import { createRequire } from 'module'; const require = createRequire(import.meta.url);
 const distPath = path.join(__dirname,'frontend','dist');
 if (!fs.existsSync(distPath)) console.warn('[WARN] Frontend dist not found yet. Vite will build in Docker image.');
 app.use(express.static(distPath));
 app.get('*',(_,res)=>res.sendFile(path.join(distPath,'index.html')));
 
-// error handler
 app.use((err,req,res,next)=>{
   const code = err.status || 500;
   console.error('[SERVER][ERROR]', code, err.message);
