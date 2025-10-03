@@ -1,8 +1,7 @@
+import React, { useEffect, useState } from 'react';
 
-import React, { const [selectedIds, setSelectedIds] = useState([]);
-const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-const [pendingDeleteIds, setPendingDeleteIds] = useState([]);
-const [isDeleting, setIsDeleting] = useState(false);
+
+
 useEffect, useMemo, useState } from 'react'
 
 const DEFAULT_APP_TITLE = "Cloudflare DNS Manager";
@@ -233,4 +232,18 @@ async function confirmDelete() {
   }
 }
 
-export default function App(){ const [logged,setLogged]=useState(!!localStorage.getItem('app_password')); const [zone,setZone]=useState(null); if(!logged) return <Login onDone={()=>setLogged(true)}/>; if(!zone) return <ZonePicker onPick={z=>setZone(z)}/>; return <Records zone={zone} onBack={()=>setZone(null)} /> }
+export default function App(){
+// Update tab title when zone changes
+useEffect(() => {
+  try {
+    const z = (selectedZone && (selectedZone.name || selectedZone.zone?.name)) || selectedZone;
+    setDocumentTitle(z);
+  } catch (e) {}
+}, [selectedZone]);
+
+// State for selection and delete modal
+const [selectedIds, setSelectedIds] = useState([]);
+const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+const [pendingDeleteIds, setPendingDeleteIds] = useState([]);
+const [isDeleting, setIsDeleting] = useState(false);
+ const [logged,setLogged]=useState(!!localStorage.getItem('app_password')); const [zone,setZone]=useState(null); if(!logged) return <Login onDone={()=>setLogged(true)}/>; if(!zone) return <ZonePicker onPick={z=>setZone(z)}/>; return <Records zone={zone} onBack={()=>setZone(null)} /> }
