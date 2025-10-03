@@ -10,17 +10,9 @@ export default function Login({ onLoggedIn }){
     try{
       setPassword(pw)
       const r = await fetch('/api/zones', { headers:{ 'x-app-password': pw }, credentials:'include' })
-      if (!r.ok) {
-        setPassword(null)
-        setErr('Invalid password')
-        return
-      }
-      setPassword(pw)
-      onLoggedIn()
-    }catch(e){
-      setPassword(null)
-      setErr('Login failed')
-    }
+      if (!r.ok) { setPassword(null); setErr('Invalid password'); return }
+      setPassword(pw); onLoggedIn()
+    }catch(e){ setPassword(null); setErr('Login failed') }
   }
 
   const clear = ()=>{ setPw(''); setErr('') }

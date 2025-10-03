@@ -52,7 +52,6 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
   const openEdit = (r)=>{ setEditing({ type:r.type, name:r.name, content:r.content, ttl:r.ttl, proxied:!!r.proxied, comment:r.comment||'', priority:r.type==='MX' ? (r.priority ?? 0) : null, id:r.id }); setShowModal(true) }
 
   const isRestricted = (r)=>{
-    // Treat locked/meta-managed records as read-only (cannot edit/delete/select)
     return r.locked || (r.meta && (r.meta.auto_added || r.meta.managed_by_apps || r.meta.managed_by_argo_tunnel));
   }
 
@@ -90,11 +89,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
     if (ids.length===0) return
     setConfirmDel(false)
     for (const id of ids){
-      try{
-        await api.deleteRecord(zone.id, id)
-      }catch(e){
-        console.error('Delete failed for', id, e)
-      }
+      try{ await api.deleteRecord(zone.id, id) }catch(e){ console.error('Delete failed for', id, e) }
     }
     const d = await api.listRecords(zone.id)
     setRows(d.result || [])
@@ -120,7 +115,9 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
         </div>
       </div>
       <div className="container">
-        <div className="row" style={{marginBottom:12}}>
+
+        {/* Search row single line */}
+        <div className="row nowrap" style={{marginBottom:12}}>
           <select value={type} onChange={e=>setType(e.target.value)} style={{maxWidth:160}}>
             <option>All</option>
             {ALLOWED_TYPES.map(t => <option key={t}>{t}</option>)}
@@ -129,7 +126,9 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
           <button className="btn" onClick={()=>setQ('')}>Clear</button>
         </div>
 
-        <div style={{display:'flex', justifyContent:'flex-end', marginBottom:6}}>
+        {/* Top toolbar: Delete (left) + Add (right) */}
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
+          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected</button>
           <button className="btn green" onClick={openCreate}>Add Record</button>
         </div>
 
@@ -142,7 +141,6 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
               <th>Content</th>
               <th>TTL</th>
               <th>Proxy</th>
-              <th>Priority</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -159,10 +157,12 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                     {truncate(r.name)}
                     {!!r.comment && <span className="tooltip" title={r.comment}>📜</span>}
                   </td>
-                  <td>{truncate(r.content)}</td>
+                  <td>
+                    {truncate(r.content)}
+                    {r.type==='MX' && (typeof r.priority !== 'undefined' && r.priority !== null) ? <span className="badge-priority">{r.priority}</span> : null}
+                  </td>
                   <td>{r.ttl === 1 ? 'Auto' : r.ttl}</td>
                   <td>{proxyCell(r)}</td>
-                  <td>{r.type==='MX' ? (r.priority ?? '') : ''}</td>
                   <td className="actions">
                     {!disabled && <button className="btn" onClick={()=>openEdit(r)}>Edit</button>}
                     {!disabled && <button className="btn red" onClick={()=>{ setSelected({[r.id]:true}); setConfirmDel(true); }}>Delete</button>}
@@ -171,15 +171,10 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
               )
             })}
             {filtered.length === 0 && !loading && (
-              <tr><td colSpan="8" style={{textAlign:'center'}}>No records</td></tr>
+              <tr><td colSpan="7" style={{textAlign:'center'}}>No records</td></tr>
             )}
           </tbody>
         </table>
-
-        <div style={{display:'flex', justifyContent:'space-between', marginTop:10}}>
-          <div></div>
-          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected</button>
-        </div>
 
         {showModal && (
           <Modal onClose={()=>setShowModal(false)}>
@@ -251,7 +246,6 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
             </div>
           </Modal>
         )}
-
       </div>
     </>
   )

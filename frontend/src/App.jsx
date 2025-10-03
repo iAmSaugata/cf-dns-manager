@@ -1,36 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Login from './components/Login.jsx'
 import ZoneSelect from './components/ZoneSelect.jsx'
 import DnsManager from './components/DnsManager.jsx'
 import { api, setPassword, getPassword } from './components/api.js'
 
 export default function App(){
-  const [view, setView] = useState('login') // login | zones | dns
+  const [view, setView] = useState('login')
   const [zones, setZones] = useState([])
   const [zone, setZone] = useState(null)
 
   useEffect(()=>{
-    // If we already have a cookie/localStorage password, try zones
     const pw = getPassword()
     if (pw){
       setPassword(pw)
       api.zones().then(d=>{
-        if (d && d.result) {
-          setZones(d.result)
-          setView('zones')
-        }
+        if (d && d.result) { setZones(d.result); setView('zones') }
       }).catch(()=>{})
     }
   }, [])
 
   const handleLoggedIn = async ()=>{
-    try{
-      const z = await api.zones()
-      setZones(z.result || [])
-      setView('zones')
-    }catch(e){
-      console.error(e)
-    }
+    const z = await api.zones()
+    setZones(z.result || [])
+    setView('zones')
   }
 
   const openZone = (z)=>{
@@ -46,9 +38,7 @@ export default function App(){
   }
 
   const changeZone = ()=>{
-    setZone(null)
-    setView('zones')
-    document.title = 'Cloudflare DNS Manager'
+    setZone(null); setView('zones'); document.title = 'Cloudflare DNS Manager'
   }
 
   return (
