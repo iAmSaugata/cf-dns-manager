@@ -182,8 +182,6 @@ function Records({zone,onBack}){
     }
   }
 
-}
-
   return <div className="wrap">
     <div className="header">
       <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
