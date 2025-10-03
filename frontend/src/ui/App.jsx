@@ -62,7 +62,7 @@ function AddRecord({zoneId,onCreated}){
   </div>
 }
 
-function DeleteModal({open,onClose,onConfirm,items}){
+function DeleteModal({open,onClose,onConfirm,items,busy}){
   if(!open) return null
   const one = items.length===1 ? items[0] : null
   return <div className="modal-mask" onClick={onClose}>
@@ -85,8 +85,8 @@ function DeleteModal({open,onClose,onConfirm,items}){
         )}
       </div>
       <div className="actions">
-        <button className="btn secondary" onClick={onClose}>Cancel</button>
-        <button className="btn danger" onClick={onConfirm}>Delete</button>
+        <button className="btn secondary" onClick={onClose} disabled={busy}>Cancel</button>
+        <button className="btn danger" onClick={onConfirm} disabled={busy}>{busy?'Deleting…':'Delete'}</button>
       </div>
     </div>
   </div>
@@ -97,7 +97,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
   const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)),[comment,setComment]=useState(rec.comment||'')
   const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied); if(LOCK_DNS_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
-  const askDelete=()=> setDeleteTarget([rec])
+  const askDelete=()=> { setDeleteMode('single'); setDeleteTarget([rec]) }
   if(edit){
     return <div className="row dns" style={{alignItems:'start'}}>
       <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
@@ -133,6 +133,8 @@ function Records({zone,onBack}){
   const [filterType,setFilterType]=useState(''),[search,setSearch]=useState('')
   const [selected,setSelected]=useState({})
   const [deleteTarget,setDeleteTarget]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
+  const [modalBusy,setModalBusy]=useState(false)
+  const [deleteMode,setDeleteMode]=useState('single')
 
   const load=async()=>{ setLoading(true); setErr(''); try{ const d=await api(`/zone/${zone.id}/dns_records?per_page=200&t=${Date.now()}`); setRecs(d.result||[]) }catch(e){ setErr(e.message) } finally{ setLoading(false) } }
   useEffect(()=>{ load() },[zone.id]);
@@ -154,9 +156,33 @@ function Records({zone,onBack}){
   const onToggleSelect=(id,on)=> setSelected(prev=>({...prev,[id]:on}))
   const allSelected = filtered.length>0 && filtered.every(r=>selected[r.id])
   const toggleAll = (on)=>{ const m={...selected}; filtered.forEach(r=>m[r.id]=on); setSelected(m) }
-  const openBulkDelete = ()=>{ const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id); if(!ids.length) return; const items = recs.filter(r=>ids.includes(r.id)); setDeleteTarget(items) }
-  const confirmDelete = async ()=>{ const items = deleteTarget||[]; if(!items.length){ setDeleteTarget(null); return } setBulkBusy(true)
+  const openBulkDelete = ()=>{
+    const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id);
+    if(!ids.length) return;
+    const items = recs.filter(r=>ids.includes(r.id));
+    setDeleteMode('bulk');
+    setDeleteTarget(items);
   }
+  const confirmDelete = async ()=>{
+    const items = deleteTarget||[];
+    if(!items.length){ setDeleteTarget(null); return }
+    const isBulk = deleteMode==='bulk' || items.length>1;
+    if(isBulk) setBulkBusy(true); else setModalBusy(true);
+    try{
+      for(const item of items){
+        await api(`/zone/${zone.id}/dns_records/${item.id}`, { method: 'DELETE' });
+        removeRec(item.id);
+      }
+      if(isBulk){ setSelected({}); }
+      setDeleteTarget(null);
+    }catch(e){
+      alert('Delete failed: ' + (e?.message || e));
+    }finally{
+      if(isBulk) setBulkBusy(false); else setModalBusy(false);
+    }
+  }
+
+}
 
   return <div className="wrap">
     <div className="header">
@@ -174,7 +200,7 @@ function Records({zone,onBack}){
           <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
         </div>
         <div className="toolbar-right">
-          <button className="btn danger" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>
+          <button className="btn danger" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} onClick={openBulkDelete}>
             {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
@@ -188,7 +214,7 @@ function Records({zone,onBack}){
       </>}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
-    <DeleteModal open={!!deleteTarget} items={deleteTarget||[]} onClose={()=>setDeleteTarget(null)} onConfirm={confirmDelete} />
+    <DeleteModal open={!!deleteTarget} items={deleteTarget||[]} busy={(deleteMode==='bulk')?bulkBusy:modalBusy} onClose={()=>setDeleteTarget(null)} onConfirm={confirmDelete} />
   </div>
 }
 
