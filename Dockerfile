@@ -16,7 +16,7 @@ RUN npm install --omit=dev
 # Copy backend sources
 COPY backend/ ./
 # Copy built frontend into backend/public (vite already outputs there, but copy for safety)
-COPY --from=frontend /app/frontend/dist ./public
+COPY --from=frontend /app/backend/public ./public
 
 EXPOSE 8080
 CMD ["npm","start"]

@@ -195,6 +195,17 @@ function DnsManager({ zone, onBack, onSignOut }) {
 
   async function load() {
     setBusy(true);
+           try {
+             for (const r of selectedList) {
+               await API.deleteRecord(zone.id, r.id);
+             }
+             setShowForm(null);
+             await load();
+           } catch (e) {
+             alert(e?.errors?.[0]?.message || e?.error || 'Bulk delete failed');
+           } finally {
+             setBusy(false);
+           };
     setError('');
     try {
       const d = await API.listRecords(zone.id);
@@ -214,6 +225,17 @@ function DnsManager({ zone, onBack, onSignOut }) {
 
   async function save(form) {
     setBusy(true);
+           try {
+             for (const r of selectedList) {
+               await API.deleteRecord(zone.id, r.id);
+             }
+             setShowForm(null);
+             await load();
+           } catch (e) {
+             alert(e?.errors?.[0]?.message || e?.error || 'Bulk delete failed');
+           } finally {
+             setBusy(false);
+           };
     try {
       if (showForm?.id) {
         await API.updateRecord(zone.id, showForm.id, form);
@@ -232,6 +254,17 @@ function DnsManager({ zone, onBack, onSignOut }) {
   async function del(id) {
     if (!confirm('Delete this record?')) return;
     setBusy(true);
+           try {
+             for (const r of selectedList) {
+               await API.deleteRecord(zone.id, r.id);
+             }
+             setShowForm(null);
+             await load();
+           } catch (e) {
+             alert(e?.errors?.[0]?.message || e?.error || 'Bulk delete failed');
+           } finally {
+             setBusy(false);
+           };
     try {
       await API.deleteRecord(zone.id, id);
       await load();
@@ -314,7 +347,18 @@ function DnsManager({ zone, onBack, onSignOut }) {
             <div className="row right">
               <button className="btn" onClick={()=>setShowForm(null)}>Cancel</button>
               <button className="btn danger" disabled={busy} onClick={async ()=>{
-                setBusy(True)
+                setBusy(true);
+           try {
+             for (const r of selectedList) {
+               await API.deleteRecord(zone.id, r.id);
+             }
+             setShowForm(null);
+             await load();
+           } catch (e) {
+             alert(e?.errors?.[0]?.message || e?.error || 'Bulk delete failed');
+           } finally {
+             setBusy(false);
+           }
               }}>Delete</button>
             </div>
           </div>
