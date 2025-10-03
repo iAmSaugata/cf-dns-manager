@@ -97,3 +97,5 @@ a{ color:inherit; }
   border-color:#243040;
   box-shadow: 0 12px 28px rgba(0,0,0,.55);
 }
+
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }

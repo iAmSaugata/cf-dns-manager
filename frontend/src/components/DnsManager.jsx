@@ -114,7 +114,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
         </div>
 
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
-          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Confirm</button>
+          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected.</button>
           <button className="btn green" onClick={openCreate}>Add Record</button>
         </div>
 
@@ -221,20 +221,18 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 </div>
               </div>
 
-              <div className="modal-actions">
+              <div className="modal-actions" style={{justifyContent:"space-between"}}>
                 <button className="btn" onClick={()=>setShowModal(false)} disabled={busy}>Cancel</button>
                 <button className="btn green" onClick={save} disabled={busy}>{busy ? 'Saving...' : 'Save'}</button>
               </div>
-            </div>
           </Modal>
         )}
 
         {/* Single delete modal (plain, more info, no hover shadow change needed) */}
         {singleDel && (
           <Modal onClose={()=>setSingleDel(null)}>
-            <div className="modal plain">
-              <div className="modal-header">Delete Record</div>
-              <div>
+            <div className="modal-header">Delete Record</div>
+            <div>
                 <div style={{marginBottom:8}}>Please confirm you want to delete this record:</div>
                 <ul>
                   <li><b>Type:</b> {singleDel.type}</li>
@@ -245,12 +243,11 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                   {singleDel.type==='MX' && <li><b>Priority:</b> {singleDel.priority}</li>}
                   {singleDel.comment && <li><b>Comment:</b> {singleDel.comment}</li>}
                 </ul>
-                <div className="modal-actions">
+                <div className="modal-actions" style={{justifyContent:"space-between"}}>
                   <button className="btn" onClick={()=>setSingleDel(null)}>Cancel</button>
                   <button className="btn red" onClick={async ()=>{ try{ await api.deleteRecord(zone.id, singleDel.id) } finally { setSingleDel(null); const d = await api.listRecords(zone.id); setRows(d.result||[]);} }}>Delete</button>
                 </div>
               </div>
-            </div>
           </Modal>
         )}
 
@@ -268,12 +265,11 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                     return <li key={id}><b>{r.type}</b> — {r.name}</li>
                   })}
                 </ul>
-                <div className="modal-actions">
+                <div className="modal-actions" style={{justifyContent:"space-between"}}>
                   <button className="btn" onClick={()=>setConfirmDel(false)}>Cancel</button>
-                  <button className="btn red" disabled={!Object.values(selected).some(Boolean)} onClick={delSelected}>Confirm</button>
+                  <button className="btn red" disabled={!Object.values(selected).some(Boolean)} onClick={delSelected}>Delete Selected.</button>
                 </div>
               </div>
-            </div>
           </Modal>
         )}
       </div>
