@@ -100,7 +100,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const askDelete=()=> { setDeleteMode('single'); setDeleteTarget([rec]) }
   if(edit){
     return <div className="row dns" style={{alignItems:'start'}}>
-      <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
+      {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />}
       <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
       <input value={name} onChange={e=>setName(e.target.value)} />
       <textarea value={content} onChange={e=>setContent(e.target.value)} />
@@ -114,7 +114,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     </div>
   }
   return <div className="row dns">
-    <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
+    {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />}}
     <div className="cell-wrap">{rec.type}</div>
     <div className="cell-wrap">
       {rec.comment ? (
@@ -124,7 +124,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     <div className="cell-wrap">{rec.content}</div>
     <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
     <div className="cell-wrap">{rec.proxied?'Proxied':'DNS only'}</div>
-    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button>{rec.meta?.read_only? null : <button className="btn danger" onClick={askDelete}>Delete</button>}</div>
+    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button>{rec.meta?.read_only ? null : <button className=\"btn danger\" onClick={askDelete}>Delete</button>}</div>
   </div>
 }
 
