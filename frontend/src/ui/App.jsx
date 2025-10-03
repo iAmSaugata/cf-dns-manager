@@ -49,7 +49,7 @@ function AddRecord({zoneId,onCreated}){
       <option value={1}>Auto</option>
       {[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}
     </select>
-    { type==='MX' ? <input placeholder=\"Priority\" type=\"number\" min=\"0\" value={priority} onChange={e=>setPriority(parseInt(e.target.value||'0',10))} /> : <div></div> }{!LOCK_DNS_ONLY.has(type) ? (
+    { type==='MX' ? <input placeholder="Priority" type="number" min="0" value={priority} onChange={e=>setPriority(parseInt(e.target.value || '0', 10))} /> : <div></div> }{!LOCK_DNS_ONLY.has(type) ? (
       <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}>
         <option value="off">DNS only</option><option value="on">Proxied</option>
       </select>
