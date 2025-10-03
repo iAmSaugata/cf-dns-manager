@@ -41,3 +41,17 @@ input:checked + .slider{ background-color:var(--accent) } input:checked + .slide
 .form-row{ display:grid; grid-template-columns:1fr 160px; gap:12px }
 .form-row-3{ display:grid; grid-template-columns:160px 160px 1fr; gap:12px }
 .proxy-wrap{ display:flex; align-items:center; gap:14px }
+
+/* Delete modal: no hover/scale */
+.nohover .table tbody tr { box-shadow:none; }
+.nohover .table tbody tr:hover { transform:none; box-shadow:none; }
+
+/* Dark theme shadow tweaks */
+:root[data-theme="dark"] .table tbody tr { box-shadow: 0 8px 18px rgba(0,0,0,.6); }
+:root[data-theme="dark"] .table tbody tr:hover { box-shadow: 0 12px 24px rgba(0,0,0,.7); }
+:root[data-theme="dark"] .btn { box-shadow: 0 6px 0 #0b1220; }
+:root[data-theme="dark"] .btn.green { box-shadow: 0 6px 0 #14532d; } /* darker green base for Add Record */
+:root[data-theme="dark"] .btn.red { box-shadow: 0 6px 0 #3f0d0d; }
+
+/* Inline label helper */
+.label-inline { display:flex; align-items:center; gap:12px; }

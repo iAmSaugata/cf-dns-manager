@@ -38,12 +38,12 @@ export default function App(){
       {view === 'zones' && <ZoneSelect zones={zones} onOpen={openZone} onSignOut={signOut}/>}
       {view === 'dns' && zone && <DnsManager zone={zone} onSignOut={signOut} onChangeZone={changeZone}/>}
       <div className="footer">
-        <span style={{marginRight:12}}>Dark Mode</span>
+        <span>Powered by Cloudflare DNS API • © iAmSaugata</span>
+        <span style={{marginLeft:16, marginRight:8}}>Dark Mode</span>
         <label className="switch">
           <input type="checkbox" checked={theme==='dark'} onChange={e=>setTheme(e.target.checked ? 'dark' : 'light')} />
           <span className="slider"></span>
         </label>
-        <span style={{marginLeft:16}}>Powered by Cloudflare DNS API • © iAmSaugata</span>
       </div>
     </div>
   )

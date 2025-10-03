@@ -114,15 +114,15 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 <td>{r.ttl === 1 ? 'Auto' : r.ttl}</td>
                 <td>{proxyCell(r)}</td>
                 <td className="actions">
-                  {!disabled && <button className="btn" onClick={()=>openEdit(r)}>Edit</button>}
-                  {!disabled && <button className="btn red" onClick={()=>{ setSelected({[r.id]:true}); setConfirmDel(true); }}>Delete</button>}
+                  <button className="btn" onClick={()=>!disabled && openEdit(r)} disabled={disabled} title={disabled ? 'Read-only' : 'Edit'}>Edit</button>
+                  <button className="btn red" onClick={()=>{ if(!disabled){ setSelected({[r.id]:true}); setConfirmDel(true); } }} disabled={disabled} title={disabled ? 'Read-only' : 'Delete'}>Delete</button>
                 </td>
               </tr>
             )
           })}
           {filtered.length===0 && !loading && <tr><td colSpan="7" style={{textAlign:'center'}}>No records</td></tr>}
         </tbody>
-      </table>
+      </table></div>
 
       {showModal && (
         <Modal onClose={()=>setShowModal(false)}>
@@ -154,20 +154,21 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
 
           <div className="form-row-3" style={{marginTop:10}}>
             <div>
-              <label>Proxy</label>
               {['A','AAAA','CNAME'].includes(editing.type) ? (
-                <div className="proxy-wrap">
-                  <span></span>
+                <div className="label-inline">
+                  <span>Proxy</span>
                   <label className="switch">
                     <input type="checkbox" checked={!!editing.proxied} onChange={e=>setEditing({...editing, proxied:e.target.checked})} />
                     <span className="slider"></span>
                   </label>
                 </div>
-              ) : (<div className="kv">DNS only</div>)}
+              ) : (
+                <div className="label-inline"><span>Proxy</span><span className="kv">DNS only</span></div>
+              )}
             </div>
             <div>
               <label>Priority (MX)</label>
-              <input className="input" type="number" min="0" value={editing.type==='MX' ? (editing.priority ?? 0) : ''} onChange={e=>setEditing({...editing, priority:e.target.value})} disabled={editing.type!=='MX'} />
+              <input className="input" type="number" min="0" value={editing.type==='MX' ? (editing.priority ?? 0) : 'N/A'} onChange={e=>setEditing({...editing, priority:e.target.value})} disabled={editing.type!=='MX'} />
             </div>
             <div className="grow">
               <label>Comment</label>
@@ -194,7 +195,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 return (
                   <div>
                     <div style={{marginBottom:8}}>You are about to delete this record:</div>
-                    <table className="table" style={{borderSpacing: 0}}>
+                    <div className="nohover"><table className="table" style={{borderSpacing: 0}}>
                       <tbody>
                         <tr><th>Type</th><td>{r.type}</td></tr>
                         <tr><th>Name</th><td>{r.name}</td></tr>
