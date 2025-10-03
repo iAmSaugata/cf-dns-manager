@@ -1,5 +1,5 @@
 <!doctype html><html><head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=1280, initial-scale=1">
+<meta charset="UTF-8"/><meta name="viewport" content="width=1024, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>CF DNS Manager</title><link rel="icon" href="/favicon.ico">
 <style>
 :root{--bg:#0b132b;--panel:#111a33;--panel2:#1c2541;--accent:#5bc0be;--accent-dark:#3aa9a7;--accent2:#3a506b;--text:#f3f7fb;--muted:#9fb3c8;--danger:#f15048;--danger-dark:#cc3e36}
@@ -61,7 +61,36 @@ textarea{min-height:44px;resize:vertical}
 /* DNS row hover effect */
 .row.dns{transition:transform .12s ease, box-shadow .15s ease}
 .row.dns:hover{transform:scale(1.01);box-shadow:0 6px 16px rgba(0,0,0,.25);border-radius:10px;position:relative;z-index:2}
-
-  body{min-width:1024px}
 </style>
+
+  <style>
+    html, body { min-width: 1024px; }
+    /* Toolbar alignment */
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+    .toolbar-left { display:flex; gap:8px; align-items:center; }
+    .toolbar-right { display:flex; gap:8px; align-items:center; }
+
+    /* Delete buttons styled red */
+    .btn-delete, .btn-delete:disabled {
+      background: #b91c1c; /* red-700 */
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: transform .05s ease, filter .15s ease;
+    }
+    .btn-delete:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-delete:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none; /* truly disabled: no hover/click */
+    }
+    /* Row delete icon/button */
+    .row-delete { color: #b91c1c; cursor: pointer; }
+    .row-delete:hover { filter: brightness(1.1); }
+
+    /* Read-only lock icon cell */
+    .cell-lock { font-size: 18px; }
+  </style>
+
 </head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
