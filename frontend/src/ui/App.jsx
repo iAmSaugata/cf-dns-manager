@@ -103,8 +103,7 @@ function DeleteModal({open,onClose,onConfirm,items,busy}){
         {filtered.map(r=> <Row key={r.id} rec={r} zoneId={zone.id} onSaved={updateRec} onToggleSelect={onToggleSelect} selected={!!selected[r.id]} setDeleteTarget={setDeleteTarget} />)}
       </>}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
-    </div>
-    <DeleteModal open={!!deleteTarget} items={deleteTarget||[]} busy={(deleteMode==='bulk')?bulkBusy:modalBusy} onClose={()=>setDeleteTarget(null)} onConfirm={confirmDelete} />
+  <DeleteModal open={!!deleteTarget} items={deleteTarget||[]} busy={(deleteMode==='bulk')?bulkBusy:modalBusy} onClose={()=>setDeleteTarget(null)} onConfirm={confirmDelete} />
   </div>
 }
 
