@@ -100,86 +100,16 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const askDelete=()=> { setDeleteMode('single'); setDeleteTarget([rec]) }
   if(edit){
     return <div className="row dns">
+      
+  
       {rec.meta?.read_only
         ? <span className="lock-icon">🔒</span>
-        : <input type="checkbox" checked={selected} onChange={e => onToggleSelect(rec.id,e.target.checked)} />
+        : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
       }
-      <div className="cell-wrap">{rec.type}</div>
-    <div className="cell-wrap">
-      {rec.comment ? (
-        <span className="tooltip"><span className="info">ℹ️</span><span className="tip">{rec.comment}</span></span>
-      ) : null} {rec.name}
-    </div>
-    <div className="cell-wrap">{rec.content}</div>
-    <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
-    <div className="cell-wrap">{rec.proxied?'Proxied':'DNS only'}</div>
-    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button><button className="btn danger" onClick={()=>{ setDeleteMode('single'); setDeleteTarget([rec]) }}>Delete</button></div>
-  </div>
-}
-
-function Records({zone,onBack}){
-  const [recs,setRecs]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
-  const [filterType,setFilterType]=useState(''),[search,setSearch]=useState('')
-  const [selected,setSelected]=useState({})
-  const [deleteTarget,setDeleteTarget]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
-  const [modalBusy,setModalBusy]=useState(false)
-  const [deleteMode,setDeleteMode]=useState('single')
-
-  const load=async()=>{ setLoading(true); setErr(''); try{ const d=await api(`/zone/${zone.id}/dns_records?per_page=200&t=${Date.now()}`); setRecs(d.result||[]) }catch(e){ setErr(e.message) } finally{ setLoading(false) } }
-  useEffect(()=>{ load() },[zone.id]);
-  useEffect(()=>{ const prev=document.title; document.title = zone.name?.toUpperCase?.() || prev; return ()=>{ document.title=prev }; }, [zone.name])
-
-  const updateRec = r => setRecs(p=>p.map(x=>x.id===r.id? r : x))
-  const removeRec = id => setRecs(p=>p.filter(x=>x.id!==id))
-  const addRec = r => setRecs(p=>[r,...p])
-
-  const filtered = useMemo(()=>{
-    const q=(search||'').toLowerCase().trim()
-    return recs.filter(r=>{
-      if(filterType && r.type!==filterType) return false
-      if(!q) return true
-      return [r.type,r.name,r.content,r.comment||''].join(' ').toLowerCase().includes(q)
-    })
-  },[recs,filterType,search])
-
-  const onToggleSelect=(id,on)=> setSelected(prev=>({...prev,[id]:on}))
-  const allSelected = filtered.length>0 && filtered.every(r=>selected[r.id])
-  const toggleAll = (on)=>{ const m={...selected}; filtered.forEach(r=>m[r.id]=on); setSelected(m) }
-  const openBulkDelete = ()=>{
-    const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id);
-    if(!ids.length) return;
-    const items = recs.filter(r=>ids.includes(r.id));
-    setDeleteMode('bulk');
-    setDeleteTarget(items);
+onChange={e => onToggleSelect(rec.id, e.target.checked)}
+      />
   }
-  const confirmDelete = async ()=>{
-    const items = deleteTarget||[];
-    if(!items.length){ setDeleteTarget(null); return }
-    const isBulk = deleteMode==='bulk' || items.length>1;
-    if(isBulk) setBulkBusy(true); else setModalBusy(true);
-    try{
-      for(const item of items){
-        await api(`/zone/${zone.id}/dns_records/${item.id}`, { method: 'DELETE' });
-        removeRec(item.id);
-      }
-      if(isBulk){ setSelected({}); }
-      setDeleteTarget(null);
-    }catch(e){
-      alert('Delete failed: ' + (e?.message || e));
-    }finally{
-      if(isBulk) setBulkBusy(false); else setModalBusy(false);
-    }
-  }
-
-  return <div className="wrap">
-    <div className="header">
-      <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
-      <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change Zone</button><Logout/></div>
-    </div>
-    <div className="card">
-      <div className="toolbar-line">
-        <div className="toolbar-left">
-          <select value={filterType} onChange={e=>setFilterType(e.target.value)}>
+<select value={filterType} onChange={e=>setFilterType(e.target.value)}>
             <option value="">All types</option>
             {['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
           </select>
