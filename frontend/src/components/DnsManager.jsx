@@ -5,11 +5,7 @@ import Modal from './modal/Modal.jsx'
 const ALLOWED_TYPES = ['A','AAAA','CNAME','TXT','MX','NS','PTR']
 
 function LockIcon(){ return <span className="lock">🔒</span> }
-
-function truncate(s){
-  if (!s) return ''
-  return s.length > 25 ? (s.slice(0,25) + '...') : s
-}
+function truncate(s){ if(!s) return ''; return s.length>25 ? s.slice(0,25)+'...' : s }
 
 export default function DnsManager({ zone, onSignOut, onChangeZone }){
   const [rows, setRows] = useState([])
@@ -44,16 +40,12 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
     })
   }, [rows, q, type])
 
-  const toggleSelect = (id)=>{
-    setSelected(s => ({...s, [id]: !s[id]}))
-  }
+  const toggleSelect = (id)=> setSelected(s => ({...s, [id]: !s[id]}))
 
   const openCreate = ()=>{ setEditing({ type:'A', name:'', content:'', ttl:1, proxied:true, priority:null, comment:'' }); setShowModal(true) }
   const openEdit = (r)=>{ setEditing({ type:r.type, name:r.name, content:r.content, ttl:r.ttl, proxied:!!r.proxied, comment:r.comment||'', priority:r.type==='MX' ? (r.priority ?? 0) : null, id:r.id }); setShowModal(true) }
 
-  const isRestricted = (r)=>{
-    return r.locked || (r.meta && (r.meta.auto_added || r.meta.managed_by_apps || r.meta.managed_by_argo_tunnel));
-  }
+  const isRestricted = (r)=> r.locked || (r.meta && (r.meta.auto_added || r.meta.managed_by_apps || r.meta.managed_by_argo_tunnel))
 
   const save = async ()=>{
     if (!editing) return
@@ -77,11 +69,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
       setRows(d.result || [])
       setShowModal(false)
       setEditing(null)
-    }catch(e){
-      alert('Save failed: ' + e.message)
-    }finally{
-      setBusy(false)
-    }
+    }catch(e){ alert('Save failed: ' + e.message) } finally { setBusy(false) }
   }
 
   const delSelected = async ()=>{
@@ -116,7 +104,6 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
       </div>
       <div className="container">
 
-        {/* Search row single line */}
         <div className="row nowrap" style={{marginBottom:12}}>
           <select value={type} onChange={e=>setType(e.target.value)} style={{maxWidth:160}}>
             <option>All</option>
@@ -126,7 +113,6 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
           <button className="btn" onClick={()=>setQ('')}>Clear</button>
         </div>
 
-        {/* Top toolbar: Delete (left) + Add (right) */}
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
           <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected</button>
           <button className="btn green" onClick={openCreate}>Add Record</button>
@@ -179,43 +165,42 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
         {showModal && (
           <Modal onClose={()=>setShowModal(false)}>
             <div className="modal-header">{editing?.id ? 'Edit Record' : 'Add Record'}</div>
-            <div className="row">
-              <div style={{flex:'0 0 180px'}}>
+            <div className="form-grid">
+              <div>
                 <label>Type</label>
                 <select value={editing.type} onChange={e=>setEditing({...editing, type:e.target.value})}>
                   {ALLOWED_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <div className="grow">
+              <div className="full">
                 <label>Name</label>
                 <input className="input" value={editing.name} onChange={e=>setEditing({...editing, name:e.target.value})} placeholder="e.g. app.example.com" />
               </div>
-            </div>
-            <div className="row" style={{marginTop:10}}>
-              <div className="grow">
+              <div className="full">
                 <label>Content</label>
                 <input className="input" value={editing.content} onChange={e=>setEditing({...editing, content:e.target.value})} placeholder="IPv4/IPv6/target/content" />
               </div>
-              <div style={{flex:'0 0 160px'}}>
+              <div>
                 <label>TTL</label>
                 <input className="input" type="number" min="1" value={editing.ttl} onChange={e=>setEditing({...editing, ttl:e.target.value})} />
                 <small className="muted">1=Auto</small>
               </div>
-            </div>
-            <div className="row" style={{marginTop:10}}>
-              <div style={{flex:'0 0 160px'}}>
+              <div>
                 <label>Proxy</label>
                 {['A','AAAA','CNAME'].includes(editing.type) ? (
-                  <input type="checkbox" checked={!!editing.proxied} onChange={e=>setEditing({...editing, proxied:e.target.checked})} />
+                  <label className="switch">
+                    <input type="checkbox" checked={!!editing.proxied} onChange={e=>setEditing({...editing, proxied:e.target.checked})} />
+                    <span className="slider"></span>
+                  </label>
                 ) : (
                   <div className="kv">DNS only</div>
                 )}
               </div>
-              <div style={{flex:'0 0 160px'}}>
+              <div>
                 <label>Priority (MX)</label>
                 <input className="input" type="number" min="0" value={editing.type==='MX' ? (editing.priority ?? 0) : ''} onChange={e=>setEditing({...editing, priority:e.target.value})} disabled={editing.type!=='MX'} />
               </div>
-              <div className="grow">
+              <div className="full">
                 <label>Comment</label>
                 <input className="input" value={editing.comment||''} onChange={e=>setEditing({...editing, comment:e.target.value})} placeholder="Optional note (shows as 📜 tooltip)" />
               </div>
@@ -236,7 +221,14 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 {Object.entries(selected).filter(([id, v])=>v).map(([id])=>{
                   const r = rows.find(x=>x.id===id)
                   if (!r) return null
-                  return <li key={id}><b>{r.type}</b> — {r.name}</li>
+                  const details = [
+                    `Name: ${r.name}`,
+                    `Content: ${r.content}`,
+                    `TTL: ${r.ttl === 1 ? 'Auto' : r.ttl}`,
+                    `Proxy: ${['A','AAAA','CNAME'].includes(r.type) ? (r.proxied ? 'Proxied' : 'DNS only') : 'DNS only'}`,
+                    ...(r.type==='MX' ? [`Priority: ${r.priority ?? ''}`] : [])
+                  ].join(' | ')
+                  return <li key={id}><b>{r.type}</b> — {details}</li>
                 })}
               </ul>
               <div className="modal-actions">

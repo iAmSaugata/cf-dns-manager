@@ -13,39 +13,22 @@ export default function App(){
     const pw = getPassword()
     if (pw){
       setPassword(pw)
-      api.zones().then(d=>{
-        if (d && d.result) { setZones(d.result); setView('zones') }
-      }).catch(()=>{})
+      api.zones().then(d=>{ if (d && d.result){ setZones(d.result); setView('zones') } })
     }
   }, [])
 
   const handleLoggedIn = async ()=>{
-    const z = await api.zones()
-    setZones(z.result || [])
-    setView('zones')
+    const z = await api.zones(); setZones(z.result || []); setView('zones')
   }
-
-  const openZone = (z)=>{
-    setZone(z)
-    document.title = (z.name || '').toUpperCase()
-    setView('dns')
-  }
-
-  const signOut = ()=>{
-    setPassword(null)
-    setView('login')
-    document.title = 'Cloudflare DNS Manager'
-  }
-
-  const changeZone = ()=>{
-    setZone(null); setView('zones'); document.title = 'Cloudflare DNS Manager'
-  }
+  const openZone = (z)=>{ setZone(z); document.title = (z.name||'').toUpperCase(); setView('dns') }
+  const signOut = ()=>{ setPassword(null); setView('login'); document.title='Cloudflare DNS Manager' }
+  const changeZone = ()=>{ setZone(null); setView('zones'); document.title='Cloudflare DNS Manager' }
 
   return (
     <div>
-      {view === 'login' && <Login onLoggedIn={handleLoggedIn}/>}
-      {view === 'zones' && <ZoneSelect zones={zones} onOpen={openZone} onSignOut={signOut}/>}
-      {view === 'dns' && zone && <DnsManager zone={zone} onSignOut={signOut} onChangeZone={changeZone}/>}
+      {view==='login' && <Login onLoggedIn={handleLoggedIn}/>}
+      {view==='zones' && <ZoneSelect zones={zones} onOpen={openZone} onSignOut={signOut}/>}
+      {view==='dns' && zone && <DnsManager zone={zone} onSignOut={signOut} onChangeZone={changeZone}/>}
       <div className="footer">Powered by Cloudflare DNS API • © iAmSaugata</div>
     </div>
   )

@@ -1,6 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 export default function ZoneSelect({ zones, onOpen, onSignOut }){
+  useEffect(()=>{
+    const t = localStorage.getItem('cf_theme_zone') || ''
+    document.documentElement.dataset.theme = t
+    const toggle = document.getElementById('themeToggle')
+    if (toggle) toggle.checked = (t === 'dark')
+    return ()=>{ document.documentElement.dataset.theme = '' }
+  }, [])
+
   return (
     <>
       <div className="header">
@@ -19,6 +27,19 @@ export default function ZoneSelect({ zones, onOpen, onSignOut }){
                 </div>
               </div>
             ))}
+          </div>
+          <div style={{marginTop:12, textAlign:'center'}}>
+            <label style={{display:'inline-flex', alignItems:'center', gap:8}}>
+              <span>Dark Mode</span>
+              <label className="switch">
+                <input type="checkbox" id="themeToggle" onChange={(e)=>{
+                  const theme = e.target.checked ? 'dark' : ''
+                  document.documentElement.dataset.theme = theme
+                  localStorage.setItem('cf_theme_zone', theme)
+                }}/>
+                <span className="slider"></span>
+              </label>
+            </label>
           </div>
         </div>
       </div>
