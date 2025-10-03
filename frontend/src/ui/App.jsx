@@ -198,7 +198,7 @@ function Records({zone,onBack}){
           <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
         </div>
         <div className="toolbar-right">
-          <button className=\"btn danger\" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={bulkBusy || !filtered.some(r=>!!selected[r.id])?{opacity:0.5,cursor:'not-allowed'}:{}} onClick={openBulkDelete}>
+          <button className="btn danger\" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={bulkBusy || !filtered.some(r=>!!selected[r.id])?{opacity:0.5,cursor:'not-allowed'}:{}} onClick={openBulkDelete}>
             {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
