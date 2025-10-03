@@ -3,12 +3,12 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install server deps
-COPY server/package.json server/package-lock.json ./server/
-RUN npm ci --prefix ./server
+COPY server/package.json ./server/
+RUN npm install --prefix ./server
 
 # Install frontend deps
-COPY frontend/package.json frontend/package-lock.json ./frontend/
-RUN npm ci --prefix ./frontend
+COPY frontend/package.json ./frontend/
+RUN npm install --prefix ./frontend
 
 # Copy source
 COPY server ./server
@@ -29,7 +29,7 @@ COPY --from=builder /app/server /app/server
 COPY --from=builder /app/frontend/dist /app/server/public
 
 # Install server production deps
-RUN npm ci --omit=dev --prefix ./server
+RUN npm install --omit=dev --prefix ./server
 
 EXPOSE 8080
 CMD ["node", "server/index.mjs"]
