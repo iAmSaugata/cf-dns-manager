@@ -1,16 +1,21 @@
 # ====== Frontend build ======
 FROM node:20-alpine AS frontend
 WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci
+# Copy package manifest(s) only to leverage Docker cache; lock file is optional
+COPY frontend/package*.json ./
+# Use npm install (not ci) so build works even without a lockfile
+RUN npm install --no-audit --no-fund
+# Copy source and build
 COPY frontend ./
 RUN npm run build
 
 # ====== Backend build ======
 FROM node:20-alpine AS backend
 WORKDIR /app/backend
-COPY backend/package.json backend/package-lock.json* ./
-RUN npm ci --only=production
+# Copy package manifest(s); lockfile optional
+COPY backend/package*.json ./
+# Install prod deps only
+RUN npm install --omit=dev --no-audit --no-fund
 COPY backend ./
 
 # ====== Final image ======
