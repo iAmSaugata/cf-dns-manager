@@ -1,8 +1,9 @@
 {
   "name": "cf-dns-manager-backend",
-  "version": "2.0.0",
+  "version": "1.1.0",
   "type": "module",
   "private": true,
+  "description": "Cloudflare DNS Manager backend (Express, ES Modules)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

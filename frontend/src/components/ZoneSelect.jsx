@@ -1,4 +1,5 @@
 import React from 'react'
+
 export default function ZoneSelect({ zones, onOpen, onSignOut }){
   return (
     <>
@@ -12,7 +13,7 @@ export default function ZoneSelect({ zones, onOpen, onSignOut }){
           <div>
             {(zones||[]).map(z => (
               <div key={z.id} className="zone-card">
-                <div style={{fontWeight:700}}>{z.name} <span className="badge">{z.plan?.name || z.type || 'zone'}</span></div>
+                <div style={{fontWeight:700}}>{z.name} <span className="badge">{z.plan && z.plan.name ? z.plan.name : (z.type || 'zone')}</span></div>
                 <div style={{marginTop:10, display:'flex', justifyContent:'center'}}>
                   <button className="btn" onClick={()=>onOpen(z)}>Open</button>
                 </div>
