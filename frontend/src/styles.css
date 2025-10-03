@@ -126,3 +126,12 @@ a{ color:inherit; }
   color: var(--muted);
   margin: 0;
 }
+
+
+/* Prevent blinking caret outside of form fields */
+body, #root, .container, .card {
+  caret-color: transparent;
+}
+input, textarea, select {
+  caret-color: auto;
+}
