@@ -124,7 +124,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     <div className="cell-wrap">{rec.content}</div>
     <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
     <div className="cell-wrap">{rec.proxied?'Proxied':'DNS only'}</div>
-    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button><button className="btn danger" onClick={askDelete}>Delete</button></div>
+    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button>{rec.meta?.read_only? null : <button className="btn danger" onClick={askDelete}>Delete</button>}</div>
   </div>
 }
 
@@ -198,7 +198,7 @@ function Records({zone,onBack}){
           <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
         </div>
         <div className="toolbar-right">
-          <button className="btn danger" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} onClick={openBulkDelete}>
+          <button className=\"btn danger\" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={bulkBusy || !filtered.some(r=>!!selected[r.id])?{opacity:0.5,cursor:'not-allowed'}:{}} onClick={openBulkDelete}>
             {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
