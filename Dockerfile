@@ -1,9 +1,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json* ./frontend/
-RUN cd frontend && npm install || true
+RUN cd frontend && npm install
 COPY frontend ./frontend
-RUN cd frontend && npm run build || true
+RUN cd frontend && npm run build
 
 FROM node:20-alpine AS runtime
 WORKDIR /app
@@ -16,4 +16,4 @@ ENV PORT=8080
 EXPOSE 8080
 COPY .env.example .env
 WORKDIR /app/backend
-CMD ["npm","start"]
+CMD ["npm", "start"]
