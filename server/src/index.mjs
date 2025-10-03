@@ -93,7 +93,7 @@ app.delete('/api/zone/:zoneId/dns_records/:id', async (req,res)=>{
 })
 
 // Serve static frontend
-const publicDir = path.join(__dirname, 'public')
+const publicDir = path.resolve(__dirname, '..', 'public')
 app.use(express.static(publicDir))
 app.get('*', (req,res)=> res.sendFile(path.join(publicDir, 'index.html')))
 
