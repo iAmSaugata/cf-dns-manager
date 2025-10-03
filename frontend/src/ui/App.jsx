@@ -1,5 +1,3 @@
-async function confirmDelete(){ try{ setIsDeleting(true); await performDelete(); setDeleteModalOpen(false); setRowDeleteId(null);} finally { setIsDeleting(false);} }
-
 import React, { useEffect, useMemo, useState } from 'react'
 
 const api = async (p,o={})=>{
@@ -38,6 +36,7 @@ function ZonePicker({onPick}){
 
 function AddRecord({zoneId,onCreated}){
   const LOCK_DNS_ONLY = new Set(['TXT','MX','NS','PTR']);
+  const [mxPriority,setMxPriority] = useState(10);
   const [type,setType]=useState('A'),[name,setName]=useState(''),[content,setContent]=useState(''),[ttl,setTtl]=useState(1),[proxied,setProxied]=useState(false),[comment,setComment]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('')
   const add=async()=>{ setBusy(true); setErr(''); try{ const body={type,name,content,ttl:Number(ttl)}; if(comment) body.comment=comment; if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied); if(LOCK_DNS_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records`,{method:'POST',body:JSON.stringify(body)}); onCreated(d.result); setName(''); setContent(''); setComment(''); }catch(e){ setErr(e.message) } finally { setBusy(false) } }
   return <div className="inline-form" style={{gridTemplateColumns:'180px 1fr 1fr 120px 140px 1fr auto'}}>
@@ -50,7 +49,7 @@ function AddRecord({zoneId,onCreated}){
       <option value={1}>Auto</option>
       {[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}
     </select>
-    {!LOCK_DNS_ONLY.has(type) ? (
+    { type==='MX' ? <input placeholder=\"Priority\" type=\"number\" min=\"0\" value={priority} onChange={e=>setPriority(parseInt(e.target.value||'0',10))} /> : <div></div> }{!LOCK_DNS_ONLY.has(type) ? (
       <select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}>
         <option value="off">DNS only</option><option value="on">Proxied</option>
       </select>
@@ -64,7 +63,8 @@ function AddRecord({zoneId,onCreated}){
 }
 
 function DeleteModal({open,onClose,onConfirm,items}){
-  if(!open) return null
+  const [busyDelete, setBusyDelete] = useState(false);
+if(!open) return null
   const one = items.length===1 ? items[0] : null
   return <div className="modal-mask" onClick={onClose}>
     <div className="modal" onClick={e=>e.stopPropagation()}>
@@ -87,7 +87,7 @@ function DeleteModal({open,onClose,onConfirm,items}){
       </div>
       <div className="actions">
         <button className="btn secondary" onClick={onClose}>Cancel</button>
-        <button className="row-delete btn-delete" onClick={() => { setRowDeleteId(rec.id); setDeleteModalOpen(true); }}>{isDeleting ? "Deleting…" : "Delete"}</button>
+        <button className="btn danger" disabled={busyDelete} onClick={async ()=>{ try{ setBusyDelete(true); await onConfirm(); } finally { setBusyDelete(false); onClose(); } }}>{busyDelete ? "Deleting…" : "Delete"}</button>
       </div>
     </div>
   </div>
@@ -95,6 +95,7 @@ function DeleteModal({open,onClose,onConfirm,items}){
 
 function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const LOCK_DNS_ONLY = new Set(['TXT','MX','NS','PTR']);
+  const [priority,setPriority]=useState(rec.priority ?? 10);
   const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
   const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)),[comment,setComment]=useState(rec.comment||'')
   const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied); if(LOCK_DNS_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
@@ -125,12 +126,13 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     <div className="cell-wrap">{rec.content}</div>
     <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
     <div className="cell-wrap">{rec.proxied?'Proxied':'DNS only'}</div>
-    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button><button className="row-delete btn-delete" onClick={() => { setRowDeleteId(rec.id); setDeleteModalOpen(true); }}>{isDeleting ? "Deleting…" : "Delete"}</button></div>
+    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button><button className="btn danger" disabled={busyDelete} onClick={async ()=>{ try{ setBusyDelete(true); await onConfirm(); } finally { setBusyDelete(false); onClose(); } }}>{busyDelete ? "Deleting…" : "Delete"}</button></div>
   </div>
 }
 
 function Records({zone,onBack}){
-  const [recs,setRecs]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
+  useEffect(()=>{ try{ document.title = (zone?.name?.toUpperCase?.()) || 'Cloudflare DNS Manager'; }catch(e){}; return ()=>{ try{ document.title='Cloudflare DNS Manager' }catch(e){} }}, [zone?.name]);
+const [recs,setRecs]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
   const [filterType,setFilterType]=useState(''),[search,setSearch]=useState('')
   const [selected,setSelected]=useState({})
   const [deleteTarget,setDeleteTarget]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
