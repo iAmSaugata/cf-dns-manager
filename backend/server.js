@@ -112,7 +112,6 @@ app.delete('/api/zone/:zoneId/dns_records/:id', requirePassword, async (req,res)
   res.json(resp.data)
 })
 
-// Serve built frontend
 const distPath = path.join(__dirname, '..', 'frontend', 'dist')
 app.use(express.static(distPath))
 app.get('*', (req,res)=> res.sendFile(path.join(distPath, 'index.html')))

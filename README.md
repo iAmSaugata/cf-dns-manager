@@ -1,17 +1,7 @@
-# Cloudflare DNS Manager (dark mode + UI refinements)
+# Cloudflare DNS Manager (UI fixes)
 
-- Dark Mode toggle in footer (remembered across sessions).
-- Add/Edit modal fields aligned in grid; proxy uses a toggle slider beside the "Proxy" label and centered vertically.
-- MX Priority shows as a pill next to Content; when Priority is not applicable, field is disabled with "N/A".
-- Single delete modal shows detailed info and uses a plain appearance (lighter shadow). Bulk delete modal unchanged.
-- Read-only (Cloudflare managed) records detected via `meta.read_only` (plus other managed flags): checkbox shows 🔒; Edit/Delete disabled with tooltip.
-- "Delete Selected" is disabled until at least one entry is selected.
-- Layout adapts to viewport (max width uses up to ~94vw). Bouncy scroll disabled.
-
-## Run
-```bash
-cp .env.example .env
-# set APP_PASSWORD and CF_API_TOKEN
-docker compose up --build -d
-# open http://localhost:8080
-```
+- Dark-mode friendly zone cards and badges.
+- Bulk delete stays disabled until a user selects at least one *selectable* entry (read-only items are ignored and not preselected).
+- Read-only entries (meta.read_only) show a lock in the checkbox cell; Edit/Delete are disabled with tooltip.
+- Popups have consistent spacing, wider width, overflow handling, right-aligned buttons with space, and updated copy.
+- Add/Edit modal now orders fields: Type | Name | TTL | Content | Proxy | Priority | Comment. Header is highlighted.

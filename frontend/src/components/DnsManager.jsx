@@ -27,10 +27,12 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
       try{
         const d = await api.listRecords(zone.id)
         setRows(d.result || [])
+        setSelected({}) // reset any stale selections
       }catch(e){ console.error(e) } finally { setLoading(false) }
     })()
   }, [zone?.id])
 
+  const selectableIds = useMemo(()=> new Set((rows||[]).filter(r=>!(r?.meta && r.meta.read_only)).map(r=>r.id)), [rows])
   const filtered = useMemo(()=>{
     const query = q.trim().toLowerCase()
     return (rows||[]).filter(r=>{
@@ -41,11 +43,8 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
     })
   }, [rows, q, type])
 
-  const toggleSelect = (id)=> {
-    const r = (rows||[]).find(x=>x.id===id)
-    if (!r) return
-    if (r.meta && r.meta.read_only) return
-    if (isRestricted(r)) return
+  const toggleSelect = (id)=>{
+    if (!selectableIds.has(id)) return
     setSelected(s => ({...s, [id]: !s[id]}))
   }
 
@@ -61,9 +60,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
     setBusy(true)
     try{
       const payload = {
-        type: editing.type,
-        name: editing.name,
-        content: editing.content,
+        type: editing.type, name: editing.name, content: editing.content,
         ttl: Number(editing.ttl)||1,
         proxied: ['A','AAAA','CNAME'].includes(editing.type) ? !!editing.proxied : undefined,
         comment: editing.comment || undefined,
@@ -72,13 +69,13 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
       if (editing.id){ await api.updateRecord(zone.id, editing.id, payload) }
       else { await api.createRecord(zone.id, payload) }
       const d = await api.listRecords(zone.id)
-      setRows(d.result || [])
+      setRows(d.result || []); setSelected({})
       setShowModal(false); setEditing(null)
     }catch(e){ alert('Save failed: ' + e.message) } finally { setBusy(false) }
   }
 
   const delSelected = async ()=>{
-    const ids = Object.entries(selected).filter(([id, v])=>v).map(([id])=>id)
+    const ids = Object.entries(selected).filter(([id, v])=>v && selectableIds.has(id)).map(([id])=>id)
     if (ids.length===0) return
     setConfirmDel(false)
     for (const id of ids){
@@ -90,8 +87,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
   }
 
   const proxyCell = (r)=> (['A','AAAA','CNAME'].includes(r.type) ? (r.proxied ? 'Proxied' : 'DNS only') : 'DNS only')
-  const idToRow = Object.fromEntries((rows||[]).map(r=>[r.id, r]))
-  const anySelected = Object.entries(selected).some(([id, v])=> v && idToRow[id] && !(idToRow[id].meta && idToRow[id].meta.read_only) && !isRestricted(idToRow[id]))
+  const anySelected = Object.entries(selected).some(([id,v])=> v && selectableIds.has(id))
 
   return (
     <>
@@ -114,7 +110,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
         </div>
 
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
-          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected.</button>
+          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected</button>
           <button className="btn green" onClick={openCreate}>Add Record</button>
         </div>
 
@@ -145,21 +141,11 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                   <td>{r.ttl === 1 ? 'Auto' : r.ttl}</td>
                   <td>{proxyCell(r)}</td>
                   <td className="actions">
-  {(() => {
-    const isRO = r.meta && r.meta.read_only;
-    if (isRestricted(r) || isRO) {
-      return (<>
-        <button className="btn" disabled title={isRO ? "Read-only from Cloudflare" : "Restricted"}>Edit</button>
-        <button className="btn red" disabled title={isRO ? "Read-only from Cloudflare" : "Restricted"}>Delete</button>
-      </>);
-    }
-    return (<>
-      <button className="btn" onClick={()=>openEdit(r)}>Edit</button>
-      <button className="btn red" onClick={()=> setSingleDel(r)}>Delete</button>
-    </>);
-  })()}
-</td>
-
+                    {!isRO && !disabled && <button className="btn" onClick={()=>openEdit(r)}>Edit</button>}
+                    {(isRO || disabled) && <button className="btn" disabled title="Read-only from Cloudflare">Edit</button>}
+                    {!isRO && !disabled && <button className="btn red" onClick={()=> setSingleDel(r)}>Delete</button>}
+                    {(isRO || disabled) && <button className="btn red" disabled title="Read-only from Cloudflare">Delete</button>}
+                  </td>
                 </tr>
               )
             })}
@@ -169,12 +155,10 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
           </tbody>
         </table>
 
-        {/* Add/Edit Modal with aligned fields & proxy slider */}
         {showModal && (
           <Modal onClose={()=>setShowModal(false)}>
             <div className="modal">
               <div className="modal-header">{editing?.id ? 'Edit Record' : 'Add Record'}</div>
-
               <div className="form-grid">
                 <div>
                   <label>Type</label>
@@ -186,17 +170,15 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                   <label>Name</label>
                   <input className="input" value={editing.name} onChange={e=>setEditing({...editing, name:e.target.value})} placeholder="e.g. app.example.com" />
                 </div>
-
-                <div>
-                  <label>Content</label>
-                  <input className="input" value={editing.content} onChange={e=>setEditing({...editing, content:e.target.value})} placeholder="IPv4/IPv6/target/content" />
-                </div>
                 <div>
                   <label>TTL</label>
                   <input className="input" type="number" min="1" value={editing.ttl} onChange={e=>setEditing({...editing, ttl:e.target.value})} />
                   <small className="muted">1=Auto</small>
                 </div>
-
+                <div>
+                  <label>Content</label>
+                  <input className="input" value={editing.content} onChange={e=>setEditing({...editing, content:e.target.value})} placeholder="IPv4/IPv6/target/content" />
+                </div>
                 <div className="form-row">
                   <label style={{minWidth:60}}>Proxy</label>
                   {['A','AAAA','CNAME'].includes(editing.type) ? (
@@ -208,32 +190,29 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                     <div className="kv">DNS only</div>
                   )}
                 </div>
-
                 <div>
                   <label>Priority (MX)</label>
                   <input className="input" type="number" min="0" placeholder="N/A" value={editing.type==='MX' ? (editing.priority ?? 0) : ''} onChange={e=>setEditing({...editing, priority:e.target.value})} disabled={editing.type!=='MX'} />
-                  {editing.type!=='MX' && <div className="na-text">N/A</div>}
                 </div>
-
                 <div className="full">
                   <label>Comment</label>
                   <input className="input" value={editing.comment||''} onChange={e=>setEditing({...editing, comment:e.target.value})} placeholder="Optional note (shows as 📜 tooltip)" />
                 </div>
               </div>
-
-              <div className="modal-actions" style={{justifyContent:"space-between"}}>
+              <div className="modal-actions">
                 <button className="btn" onClick={()=>setShowModal(false)} disabled={busy}>Cancel</button>
                 <button className="btn green" onClick={save} disabled={busy}>{busy ? 'Saving...' : 'Save'}</button>
               </div>
+            </div>
           </Modal>
         )}
 
-        {/* Single delete modal (plain, more info, no hover shadow change needed) */}
         {singleDel && (
           <Modal onClose={()=>setSingleDel(null)}>
-            <div className="modal-header">Delete Record</div>
-            <div>
-                <div style={{marginBottom:8}}>Please confirm you want to delete this record:</div>
+            <div className="modal plain">
+              <div className="modal-header">Delete Record</div>
+              <div>
+                <div style={{marginBottom:8}}>Please confirm you want to delete this DNS record:</div>
                 <ul>
                   <li><b>Type:</b> {singleDel.type}</li>
                   <li><b>Name:</b> {singleDel.name}</li>
@@ -243,15 +222,15 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                   {singleDel.type==='MX' && <li><b>Priority:</b> {singleDel.priority}</li>}
                   {singleDel.comment && <li><b>Comment:</b> {singleDel.comment}</li>}
                 </ul>
-                <div className="modal-actions" style={{justifyContent:"space-between"}}>
+                <div className="modal-actions">
                   <button className="btn" onClick={()=>setSingleDel(null)}>Cancel</button>
                   <button className="btn red" onClick={async ()=>{ try{ await api.deleteRecord(zone.id, singleDel.id) } finally { setSingleDel(null); const d = await api.listRecords(zone.id); setRows(d.result||[]);} }}>Delete</button>
                 </div>
               </div>
+            </div>
           </Modal>
         )}
 
-        {/* Bulk delete modal unchanged */}
         {confirmDel && (
           <Modal onClose={()=>setConfirmDel(false)}>
             <div className="modal">
@@ -259,17 +238,18 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
               <div>
                 <div style={{marginBottom:8}}>The following records will be deleted:</div>
                 <ul>
-                  {Object.entries(selected).filter(([id, v])=>v).map(([id])=>{
+                  {Object.entries(selected).filter(([id, v])=>v && selectableIds.has(id)).map(([id])=>{
                     const r = rows.find(x=>x.id===id)
                     if (!r) return null
                     return <li key={id}><b>{r.type}</b> — {r.name}</li>
                   })}
                 </ul>
-                <div className="modal-actions" style={{justifyContent:"space-between"}}>
+                <div className="modal-actions">
                   <button className="btn" onClick={()=>setConfirmDel(false)}>Cancel</button>
-                  <button className="btn red" disabled={!Object.values(selected).some(Boolean)} onClick={delSelected}>Delete Selected.</button>
+                  <button className="btn red" disabled={!Object.entries(selected).some(([id,v])=>v && selectableIds.has(id))} onClick={delSelected}>Delete Selected</button>
                 </div>
               </div>
+            </div>
           </Modal>
         )}
       </div>
