@@ -157,7 +157,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
 
         {showModal && (
           <Modal onClose={()=>setShowModal(false)}>
-            <div className="modal">
+            <div className="modal confirm">
               <div className="modal-header">{editing?.id ? 'Edit Record' : 'Add Record'}</div>
               <div className="form-grid">
                 <div>
