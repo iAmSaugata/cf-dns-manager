@@ -114,7 +114,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     </div>
   }
   return <div className="row dns">
-    {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />}}
+    {rec.meta?.read_only ? <span className="lock-icon">🔒</span> : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />}}
     <div className="cell-wrap">{rec.type}</div>
     <div className="cell-wrap">
       {rec.comment ? (
@@ -124,7 +124,7 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
     <div className="cell-wrap">{rec.content}</div>
     <div className="cell-wrap">{rec.ttl===1?'Auto':rec.ttl}</div>
     <div className="cell-wrap">{rec.proxied?'Proxied':'DNS only'}</div>
-    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button>{rec.meta?.read_only ? null : <button className=\"btn danger\" onClick={askDelete}>Delete</button>}</div>
+    <div className="row-actions"><button className="btn" onClick={()=>setEdit(true)}>Edit</button>{rec.meta?.read_only ? null : <button className="btn danger\" onClick={askDelete}>Delete</button>}</div>
   </div>
 }
 
