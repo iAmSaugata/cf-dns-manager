@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  cf-dns-manager:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_PASSWORD=${APP_PASSWORD}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - PORT=8080
+    restart: unless-stopped
