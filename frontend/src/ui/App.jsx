@@ -86,40 +86,13 @@ function DeleteModal({open,onClose,onConfirm,items,busy}){
       </div>
       <div className="actions">
         <button className="btn secondary" onClick={onClose} disabled={busy}>Cancel</button>
-        <button className="btn danger" onClick={onConfirm} disabled={busy}>{busy?'Deleting…':'Delete'}</button>
-      </div>
-    </div>
-  </div>
-}
-
-function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
-  const LOCK_DNS_ONLY = new Set(['TXT','MX','NS','PTR']);
-  const [edit,setEdit]=useState(false),[busy,setBusy]=useState(false)
-  const [type,setType]=useState(rec.type),[name,setName]=useState(rec.name),[content,setContent]=useState(rec.content),[ttl,setTtl]=useState(rec.ttl),[proxied,setProxied]=useState(Boolean(rec.proxied)),[comment,setComment]=useState(rec.comment||''),[priority,setPriority]=useState(rec.priority ?? 10)
-  const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied); if(LOCK_DNS_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
-  const askDelete=()=> { setDeleteMode('single'); setDeleteTarget([rec]) }
-  if(edit){
-    return <div className="row dns">
-      
-  
-      {rec.meta?.read_only
-        ? <span className="lock-icon">🔒</span>
-        : <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
-      }
-onChange={e => onToggleSelect(rec.id, e.target.checked)}
-      />
-  }
-<select value={filterType} onChange={e=>setFilterType(e.target.value)}>
-            <option value="">All types</option>
-            {['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}
-          </select>
-          <input placeholder="Search type, name, content, or comment…" value={search} onChange={e=>setSearch(e.target.value)} />
-          <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
-        </div>
-        <div className="toolbar-right">
-          <button className="btn danger" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={(bulkBusy || !filtered.some(r=>!!selected[r.id]))?{opacity:0.5,cursor:'not-allowed',pointerEvents:'none'}:{}} onClick={() => { if (!(bulkBusy || !filtered.some(r=>!!selected[r.id]))) return; openBulkDelete(); }}>
-            {bulkBusy?'Deleting…':'Delete Selected'}
-          </button>
+        <button className="btn danger"
+  disabled={bulkBusy || !filtered.some(r => !!selected[r.id])}
+  style={(bulkBusy || !filtered.some(r => !!selected[r.id])) ? {opacity: 0.5, cursor: "not-allowed", pointerEvents: "none"} : {}}
+  onClick={() => { if (bulkBusy || !filtered.some(r => !!selected[r.id])) return; openBulkDelete(); }}
+>
+  {bulkBusy ? 'Deleting…' : 'Delete Selected'}
+</button>
         </div>
       </div>
       <div className="toolbar"><AddRecord zoneId={zone.id} onCreated={addRec} /></div>
