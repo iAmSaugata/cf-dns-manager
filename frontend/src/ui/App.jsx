@@ -99,24 +99,12 @@ function Row({rec,zoneId,onSaved,onToggleSelect,selected,setDeleteTarget}){
   const save=async()=>{ setBusy(true); try{ const body={type,name,content,ttl:Number(ttl),comment}; if(['A','AAAA','CNAME'].includes(type) && !LOCK_DNS_ONLY.has(type)) body.proxied=Boolean(proxied); if(LOCK_DNS_ONLY.has(type)) body.proxied=false; const d=await api(`/zone/${zoneId}/dns_records/${rec.id}`,{method:'PUT',body:JSON.stringify(body)}); onSaved(d.result); setEdit(false)}catch(e){ alert('Save failed: '+e.message) } finally{ setBusy(false) } }
   const askDelete=()=> { setDeleteMode('single'); setDeleteTarget([rec]) }
   if(edit){
-    return <div className="row dns" style={{alignItems:'start'}}>
-      {rec.meta?.read_only ? <span className=\"lock-icon\">🔒</span> : <input type=\"checkbox\" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />}onToggleSelect(rec.id,e.target.checked)} />
-      <select value={type} onChange={e=>setType(e.target.value)}>{['A','AAAA','CNAME','TXT','MX','NS','PTR'].map(t=><option key={t} value={t}>{t}</option>)}</select>
-      <input value={name} onChange={e=>setName(e.target.value)} />
-      <textarea value={content} onChange={e=>setContent(e.target.value)} />
-      <select value={ttl} onChange={e=>setTtl(e.target.value)}><option value={1}>Auto</option>{[60,120,300,600,1200,1800,3600,7200,14400,28800,43200].map(v=><option key={v} value={v}>{v}s</option>)}</select>
-      { !LOCK_DNS_ONLY.has(type) ? (<select value={proxied?'on':'off'} onChange={e=>setProxied(e.target.value==='on')}><option value="off">DNS only</option><option value="on">Proxied</option></select>) : (<div className="badge">DNS only</div>) }
-      {type==='MX' && (<div className=\"row\"><div>Priority</div><input type=\"number\" value={priority} onChange={e=>setPriority(+e.target.value)} /></div>)}
-      <input placeholder=\"Comment\" value={comment} onChange={e=>setComment(e.target.value)} />
-      <div className="row-actions" style={{minWidth:170}}>
-        <button className="btn" disabled={busy} onClick={save}>{busy?'Saving…':'Save'}</button>
-        <button className="btn secondary" disabled={busy} onClick={()=>setEdit(false)}>Cancel</button>
-      </div>
-    </div>
-  }
-  return <div className="row dns">
-    <input type="checkbox" checked={selected} onChange={e=>onToggleSelect(rec.id,e.target.checked)} />
-    <div className="cell-wrap">{rec.type}</div>
+    return <div className="row dns">
+      {rec.meta?.read_only
+        ? <span className="lock-icon">🔒</span>
+        : <input type="checkbox" checked={selected} onChange={e => onToggleSelect(rec.id,e.target.checked)} />
+      }
+      <div className="cell-wrap">{rec.type}</div>
     <div className="cell-wrap">
       {rec.comment ? (
         <span className="tooltip"><span className="info">ℹ️</span><span className="tip">{rec.comment}</span></span>
@@ -199,7 +187,7 @@ function Records({zone,onBack}){
           <button className="btn secondary" onClick={()=>{ setFilterType(''); setSearch(''); }}>Clear</button>
         </div>
         <div className="toolbar-right">
-          <button className=\"btn danger\" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={(bulkBusy || !filtered.some(r=>!!selected[r.id]))?{opacity:0.5,cursor:'not-allowed',pointerEvents:'none'}:{}} onClick={() => { if (!(bulkBusy || !filtered.some(r=>!!selected[r.id]))) return; openBulkDelete(); }}>
+          <button className="btn danger" disabled={bulkBusy || !filtered.some(r=>!!selected[r.id])} style={(bulkBusy || !filtered.some(r=>!!selected[r.id]))?{opacity:0.5,cursor:'not-allowed',pointerEvents:'none'}:{}} onClick={() => { if (!(bulkBusy || !filtered.some(r=>!!selected[r.id]))) return; openBulkDelete(); }}>
             {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
