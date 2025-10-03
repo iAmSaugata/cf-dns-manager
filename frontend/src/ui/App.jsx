@@ -1,8 +1,3 @@
-import React, { useEffect, useState } from 'react';
-
-
-
-useEffect, useMemo, useState } from 'react'
 
 const DEFAULT_APP_TITLE = "Cloudflare DNS Manager";
 function setDocumentTitle(zoneName) {
@@ -25,10 +20,10 @@ const api = async (p,o={})=>{
 const Logout=()=> <button className="btn secondary" onClick={()=>{document.cookie='app_password=; Max-Age=0; Path=/';localStorage.removeItem('app_password');location.reload()}}>Sign out</button>
 
 function ZonePicker({onPick}){
-  useEffect(() => { try { const z = (selectedZone && (selectedZone.name || selectedZone.zone?.name)) || selectedZone; setDocumentTitle(z); } catch(e){} }, [selectedZone]);
+
 
 const [zones,setZones]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
-  useEffect(()=>{(async()=>{try{const d=await api(`/zones?t=${Date.now()}`);const zs=d.result||[];setZones(zs);if(zs.length===1)onPick(zs[0])}catch(e){setErr(e.message)}finally{setLoading(false)}})()},[])
+
   if(loading) return <div className="center"><div className="card"><p className="muted">Loading zones…</p></div></div>
   return <div className="center" style={{alignItems:'flex-start'}}>
     <div className="wrap" style={{padding:0}}>
@@ -150,7 +145,7 @@ function Records({zone,onBack}){
   const [deleteTarget,setDeleteTarget]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
 
   const load=async()=>{ setLoading(true); setErr(''); try{ const d=await api(`/zone/${zone.id}/dns_records?per_page=200&t=${Date.now()}`); setRecs(d.result||[]) }catch(e){ setErr(e.message) } finally{ setLoading(false) } }
-  useEffect(()=>{ load() },[zone.id])
+
 
   const updateRec = r => setRecs(p=>p.map(x=>x.id===r.id? r : x))
   const removeRec = id => setRecs(p=>p.filter(x=>x.id!==id))
@@ -234,7 +229,7 @@ async function confirmDelete() {
 
 export default function App(){
 // Update tab title when zone changes
-useEffect(() => {
+
   try {
     const z = (selectedZone && (selectedZone.name || selectedZone.zone?.name)) || selectedZone;
     setDocumentTitle(z);
