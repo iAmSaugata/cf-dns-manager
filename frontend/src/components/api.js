@@ -13,7 +13,7 @@ export function getPassword(){ return localStorage.getItem('app_password') || nu
 async function req(path, opts={}){
   const headers = opts.headers || {}
   if (password) headers['x-app-password'] = password
-  const res = await fetch(path, { ...opts, headers, credentials: 'include' })
+  const res = await fetch(path, { ...opts, headers, credentials:'include' })
   if (!res.ok){
     const t = await res.json().catch(()=>({}))
     throw new Error(t.error || 'Request failed')
@@ -23,8 +23,8 @@ async function req(path, opts={}){
 export const api = {
   health(){ return req('/api/health') },
   zones(){ return req('/api/zones') },
-  listRecords(zoneId){ return req(`/api/zone/${zoneId}/dns_records`) },
-  createRecord(zoneId, payload){ return req(`/api/zone/${zoneId}/dns_records`, { method:'POST', body: JSON.stringify(payload), headers:{ 'Content-Type':'application/json' } }) },
-  updateRecord(zoneId, id, payload){ return req(`/api/zone/${zoneId}/dns_records/${id}`, { method:'PUT', body: JSON.stringify(payload), headers:{ 'Content-Type':'application/json' } }) },
-  deleteRecord(zoneId, id){ return req(`/api/zone/${zoneId}/dns_records/${id}`, { method:'DELETE' }) },
+  listRecords(z){ return req(`/api/zone/${z}/dns_records`) },
+  createRecord(z, p){ return req(`/api/zone/${z}/dns_records`, { method:'POST', body: JSON.stringify(p), headers:{'Content-Type':'application/json'} }) },
+  updateRecord(z, id, p){ return req(`/api/zone/${z}/dns_records/${id}`, { method:'PUT', body: JSON.stringify(p), headers:{'Content-Type':'application/json'} }) },
+  deleteRecord(z, id){ return req(`/api/zone/${z}/dns_records/${id}`, { method:'DELETE' }) },
 }

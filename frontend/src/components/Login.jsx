@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { setPassword } from './api.js'
 export default function Login({ onLoggedIn }){
-  const [pw, setPw] = useState('')
-  const [err, setErr] = useState('')
+  const [pw, setPw] = useState(''); const [err, setErr] = useState('')
   const go = async ()=>{
     setErr('')
     try{

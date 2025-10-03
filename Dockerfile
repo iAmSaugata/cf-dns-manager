@@ -5,7 +5,7 @@ RUN cd frontend && npm install
 COPY frontend ./frontend
 RUN cd frontend && npm run build
 
-FROM node:20-alpine AS runtime
+FROM node:20-alpine
 WORKDIR /app
 COPY backend/package.json ./backend/package.json
 RUN cd backend && npm install --omit=dev
@@ -16,4 +16,4 @@ ENV PORT=8080
 EXPOSE 8080
 COPY .env.example .env
 WORKDIR /app/backend
-CMD ["npm", "start"]
+CMD ["npm","start"]

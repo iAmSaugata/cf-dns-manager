@@ -1,4 +1,3 @@
-// Backend
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -21,18 +20,18 @@ const CF_API_BASE = 'https://api.cloudflare.com/client/v4';
 
 app.use(morgan('dev'));
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json());
 app.use(cookieParser());
 app.use(compression());
 
-function requirePassword(req,res,next){
+function requirePassword(req, res, next){
   const pass = req.headers['x-app-password'] || req.cookies['app_password'];
-  if (!APP_PASSWORD) return res.status(500).json({ success:false, error:'APP_PASSWORD not configured' });
+  if (!APP_PASSWORD) return res.status(500).json({ success:false, error:'APP_PASSWORD not set' });
   if (pass !== APP_PASSWORD) return res.status(401).json({ success:false, error:'Unauthorized' });
   next();
 }
 
-async function cfRequest(pathname, options={}){
+async function cfRequest(pathname, options = {}){
   const url = `${CF_API_BASE}${pathname}`;
   const opts = {
     ...options,
@@ -43,35 +42,42 @@ async function cfRequest(pathname, options={}){
     }
   };
   console.log(`[CF] ${opts.method||'GET'} ${url}`);
-  if (opts.body) try{ console.log('[CF] Body:', JSON.stringify(JSON.parse(opts.body), null, 2)); }catch{}
+  if (opts.body) try{ console.log('[CF] Body', JSON.stringify(JSON.parse(opts.body), null, 2)); }catch{}
   const r = await fetch(url, opts);
   const text = await r.text();
-  let json; try{ json = JSON.parse(text) }catch{ json = { raw: text } }
-  if (!r.ok || (json && json.success===false)) return { ok:false, status:r.status, data:json };
+  let json; try{ json = JSON.parse(text); }catch{ json = { raw: text } }
+  if (!r.ok || (json && json.success === false)) return { ok:false, status:r.status, data:json };
   return { ok:true, status:r.status, data:json };
 }
 
-app.get('/api/health', (req,res)=>res.json({ ok:true, ts:new Date().toISOString() }));
+// Health (no auth)
+app.get('/api/health', (req,res)=> res.json({ ok:true, ts:new Date().toISOString() }));
+
+// Zones
 app.get('/api/zones', requirePassword, async (req,res)=>{
-  const resp = await cfRequest('/zones?per_page=50');
+  const resp = await cfRequest('/zones?per_page=100');
   if (!resp.ok) return res.status(resp.status).json(resp.data);
   res.json(resp.data);
 });
 
-const ALLOWED_TYPES = new Set(['A','AAAA','CNAME','TXT','MX','NS','PTR']);
+const ALLOWED = new Set(['A','AAAA','CNAME','TXT','MX','NS','PTR']);
 app.get('/api/zone/:zoneId/dns_records', requirePassword, async (req,res)=>{
   const { zoneId } = req.params;
   const resp = await cfRequest(`/zones/${zoneId}/dns_records?per_page=1000`);
   if (!resp.ok) return res.status(resp.status).json(resp.data);
-  const results = (resp.data.result||[]).filter(r=>ALLOWED_TYPES.has(r.type));
-  res.json({ success:true, result: results });
+  const result = (resp.data.result||[]).filter(r => ALLOWED.has(r.type));
+  res.json({ success:true, result });
 });
 
 app.post('/api/zone/:zoneId/dns_records', requirePassword, async (req,res)=>{
   const { zoneId } = req.params; const b = req.body||{};
-  if (!ALLOWED_TYPES.has(b.type)) return res.status(400).json({ success:false, error:'Type not allowed' });
+  if (!ALLOWED.has(b.type)) return res.status(400).json({ success:false, error:'Type not allowed' });
   if (!['A','AAAA','CNAME'].includes(b.type)) delete b.proxied;
-  const payload = { type:b.type, name:b.name, content:b.content, ttl:b.ttl||1, proxied:b.proxied, comment:b.comment||undefined, priority: b.type==='MX' ? Number(b.priority||0):undefined };
+  const payload = {
+    type:b.type, name:b.name, content:b.content, ttl:b.ttl||1,
+    proxied:b.proxied, comment:b.comment||undefined,
+    priority:b.type==='MX' ? Number(b.priority||0) : undefined
+  };
   const resp = await cfRequest(`/zones/${zoneId}/dns_records`, { method:'POST', body: JSON.stringify(payload) });
   if (!resp.ok) return res.status(resp.status).json(resp.data);
   res.json(resp.data);
@@ -79,9 +85,13 @@ app.post('/api/zone/:zoneId/dns_records', requirePassword, async (req,res)=>{
 
 app.put('/api/zone/:zoneId/dns_records/:id', requirePassword, async (req,res)=>{
   const { zoneId, id } = req.params; const b = req.body||{};
-  if (!ALLOWED_TYPES.has(b.type)) return res.status(400).json({ success:false, error:'Type not allowed' });
+  if (!ALLOWED.has(b.type)) return res.status(400).json({ success:false, error:'Type not allowed' });
   if (!['A','AAAA','CNAME'].includes(b.type)) delete b.proxied;
-  const payload = { type:b.type, name:b.name, content:b.content, ttl:b.ttl||1, proxied:b.proxied, comment:b.comment||undefined, priority: b.type==='MX' ? Number(b.priority||0):undefined };
+  const payload = {
+    type:b.type, name:b.name, content:b.content, ttl:b.ttl||1,
+    proxied:b.proxied, comment:b.comment||undefined,
+    priority:b.type==='MX' ? Number(b.priority||0) : undefined
+  };
   const resp = await cfRequest(`/zones/${zoneId}/dns_records/${id}`, { method:'PUT', body: JSON.stringify(payload) });
   if (!resp.ok) return res.status(resp.status).json(resp.data);
   res.json(resp.data);
@@ -94,8 +104,9 @@ app.delete('/api/zone/:zoneId/dns_records/:id', requirePassword, async (req,res)
   res.json(resp.data);
 });
 
+// serve frontend
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(distPath));
-app.get('*', (req,res)=>res.sendFile(path.join(distPath, 'index.html')));
+app.get('*', (req,res)=> res.sendFile(path.join(distPath, 'index.html')));
 
-app.listen(PORT, ()=>console.log('CF DNS Manager on :' + PORT));
+app.listen(PORT, ()=> console.log('CF DNS Manager on :' + PORT));
