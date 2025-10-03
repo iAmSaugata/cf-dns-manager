@@ -215,8 +215,8 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 <div style={{marginBottom:8}}>Please confirm you want to delete this DNS record:</div>
                 <ul>
                   <li><b>Type:</b> {singleDel.type}</li>
-                  <li><b>Name:</b> {singleDel.name}</li>
-                  <li><b>Content:</b> {singleDel.content}</li>
+                  <li><b>Name:</b> {singleDel.name.length>30 ? <span title={singleDel.name}>{singleDel.name.slice(0,30)+'...'}</span> : singleDel.name}</li>
+                  <li><b>Content:</b> {singleDel.content.length>30 ? <span title={singleDel.content}>{singleDel.content.slice(0,30)+'...'}</span> : singleDel.content}</li>
                   <li><b>TTL:</b> {singleDel.ttl === 1 ? 'Auto' : singleDel.ttl}</li>
                   <li><b>Proxy:</b> {['A','AAAA','CNAME'].includes(singleDel.type) ? (singleDel.proxied ? 'Proxied' : 'DNS only') : 'DNS only'}</li>
                   {singleDel.type==='MX' && <li><b>Priority:</b> {singleDel.priority}</li>}
