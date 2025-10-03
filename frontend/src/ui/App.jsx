@@ -9,7 +9,7 @@ const api = async (p,o={})=>{
   return d
 }
 
-const Logout=()=> <button className="btn secondary" onClick={()=>{document.cookie='app_password=; Max-Age=0; Path=/';localStorage.removeItem('app_password');location.reload()}}>Sign out</button>
+const Logout=()=> <button className="btn secondary" onClick={()=>{document.cookie='app_password=; Max-Age=0; Path=/';localStorage.removeItem('app_password');location.reload()}}>Sign Out</button>
 
 function ZonePicker({onPick}){
   const [zones,setZones]=useState([]),[loading,setLoading]=useState(true),[err,setErr]=useState('')
@@ -57,7 +57,7 @@ function AddRecord({zoneId,onCreated}){
       <div style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className="badge">DNS only</div></div>
     )}
     <input placeholder="Comment (optional)" value={comment} onChange={e=>setComment(e.target.value)} />
-    <button className="btn" disabled={busy || !type || !content} onClick={add}>{busy?'Adding…':'Add record'}</button>
+    <button className="btn" disabled={busy || !type || !content} onClick={add}>{busy?'Adding…':'Add Record'}</button>
     {err && <div className="muted" style={{gridColumn:'1 / -1'}}>Error: {err}</div>}
   </div>
 }
@@ -135,7 +135,8 @@ function Records({zone,onBack}){
   const [deleteTarget,setDeleteTarget]=useState(null),[bulkBusy,setBulkBusy]=useState(false)
 
   const load=async()=>{ setLoading(true); setErr(''); try{ const d=await api(`/zone/${zone.id}/dns_records?per_page=200&t=${Date.now()}`); setRecs(d.result||[]) }catch(e){ setErr(e.message) } finally{ setLoading(false) } }
-  useEffect(()=>{ load() },[zone.id])
+  useEffect(()=>{ load() },[zone.id]);
+  useEffect(()=>{ const prev=document.title; document.title = zone.name?.toUpperCase?.() || prev; return ()=>{ document.title=prev }; }, [zone.name])
 
   const updateRec = r => setRecs(p=>p.map(x=>x.id===r.id? r : x))
   const removeRec = id => setRecs(p=>p.filter(x=>x.id!==id))
@@ -154,13 +155,13 @@ function Records({zone,onBack}){
   const allSelected = filtered.length>0 && filtered.every(r=>selected[r.id])
   const toggleAll = (on)=>{ const m={...selected}; filtered.forEach(r=>m[r.id]=on); setSelected(m) }
   const openBulkDelete = ()=>{ const ids = Object.entries(selected).filter(([,on])=>on).map(([id])=>id); if(!ids.length) return; const items = recs.filter(r=>ids.includes(r.id)); setDeleteTarget(items) }
-  const confirmDelete = async ()=>{ const items = deleteTarget||[]; if(!items.length){ setDeleteTarget(null); return } setBulkBusy(True)
+  const confirmDelete = async ()=>{ const items = deleteTarget||[]; if(!items.length){ setDeleteTarget(null); return } setBulkBusy(true)
   }
 
   return <div className="wrap">
     <div className="header">
       <div className="title">DNS Manager for Zone <b>{zone.name.toUpperCase()}</b></div>
-      <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change zone</button><Logout/></div>
+      <div style={{display:'flex',gap:8}}><button className="btn secondary" onClick={onBack}>Change Zone</button><Logout/></div>
     </div>
     <div className="card">
       <div className="toolbar-line">
@@ -174,7 +175,7 @@ function Records({zone,onBack}){
         </div>
         <div className="toolbar-right">
           <button className="btn danger" disabled={bulkBusy || !Object.values(selected).some(Boolean)} onClick={openBulkDelete}>
-            {bulkBusy?'Deleting…':'Delete selected'}
+            {bulkBusy?'Deleting…':'Delete Selected'}
           </button>
         </div>
       </div>
