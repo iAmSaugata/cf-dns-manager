@@ -205,7 +205,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                         {r.type==='MX' ? <tr><th>Priority</th><td>{r.priority ?? ''}</td></tr> : null}
                         {r.comment ? <tr><th>Comment</th><td>{r.comment}</td></tr> : null}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 )
               }
