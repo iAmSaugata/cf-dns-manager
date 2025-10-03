@@ -41,7 +41,13 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
     })
   }, [rows, q, type])
 
-  const toggleSelect = (id)=> setSelected(s => ({...s, [id]: !s[id]}))
+  const toggleSelect = (id)=> {
+    const r = (rows||[]).find(x=>x.id===id)
+    if (!r) return
+    if (r.meta && r.meta.read_only) return
+    if (isRestricted(r)) return
+    setSelected(s => ({...s, [id]: !s[id]}))
+  }
 
   const openCreate = ()=>{ setEditing({ type:'A', name:'', content:'', ttl:1, proxied:true, priority:null, comment:'' }); setShowModal(true) }
   const openEdit = (r)=>{ setEditing({ type:r.type, name:r.name, content:r.content, ttl:r.ttl, proxied:!!r.proxied, comment:r.comment||'', priority:r.type==='MX' ? (r.priority ?? 0) : null, id:r.id }); setShowModal(true) }
@@ -84,7 +90,8 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
   }
 
   const proxyCell = (r)=> (['A','AAAA','CNAME'].includes(r.type) ? (r.proxied ? 'Proxied' : 'DNS only') : 'DNS only')
-  const anySelected = Object.values(selected).some(Boolean)
+  const idToRow = Object.fromEntries((rows||[]).map(r=>[r.id, r]))
+  const anySelected = Object.entries(selected).some(([id, v])=> v && idToRow[id] && !(idToRow[id].meta && idToRow[id].meta.read_only) && !isRestricted(idToRow[id]))
 
   return (
     <>
@@ -107,7 +114,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
         </div>
 
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
-          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Delete Selected</button>
+          <button className="btn red" disabled={!anySelected} onClick={()=>setConfirmDel(true)}>Confirm</button>
           <button className="btn green" onClick={openCreate}>Add Record</button>
         </div>
 
@@ -138,11 +145,21 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                   <td>{r.ttl === 1 ? 'Auto' : r.ttl}</td>
                   <td>{proxyCell(r)}</td>
                   <td className="actions">
-                    {!disabled && !isRO && <button className="btn" onClick={()=>openEdit(r)}>Edit</button>}
-                    {isRO && <button className="btn" disabled title="Read-only from Cloudflare">Edit</button>}
-                    {!disabled && !isRO && <button className="btn red" onClick={()=> setSingleDel(r)}>Delete</button>}
-                    {isRO && <button className="btn red" disabled title="Read-only from Cloudflare">Delete</button>}
-                  </td>
+  {(() => {
+    const isRO = r.meta && r.meta.read_only;
+    if (isRestricted(r) || isRO) {
+      return (<>
+        <button className="btn" disabled title={isRO ? "Read-only from Cloudflare" : "Restricted"}>Edit</button>
+        <button className="btn red" disabled title={isRO ? "Read-only from Cloudflare" : "Restricted"}>Delete</button>
+      </>);
+    }
+    return (<>
+      <button className="btn" onClick={()=>openEdit(r)}>Edit</button>
+      <button className="btn red" onClick={()=> setSingleDel(r)}>Delete</button>
+    </>);
+  })()}
+</td>
+
                 </tr>
               )
             })}
@@ -253,7 +270,7 @@ export default function DnsManager({ zone, onSignOut, onChangeZone }){
                 </ul>
                 <div className="modal-actions">
                   <button className="btn" onClick={()=>setConfirmDel(false)}>Cancel</button>
-                  <button className="btn red" disabled={!Object.values(selected).some(Boolean)} onClick={delSelected}>Delete Selected</button>
+                  <button className="btn red" disabled={!Object.values(selected).some(Boolean)} onClick={delSelected}>Confirm</button>
                 </div>
               </div>
             </div>
