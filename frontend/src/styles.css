@@ -120,11 +120,14 @@ a{ color:inherit; }
   justify-content: center;
   align-items: center;
   gap: 12px;
+  font-weight: bold;   /* make footer text bold */
 }
+
 .footer .theme-toggle label {
   font-size: 15px;
   color: var(--muted);
   margin: 0;
+  font-weight: bold;   /* make Dark Mode label bold */
 }
 
 
